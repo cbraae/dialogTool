@@ -23,11 +23,11 @@ export default {
   	trackingData: {
       handler: function() {
           console.log(this.trackingData)
-          /*var cleanedData = this.trackingData.map(item => (item[this.trackingData.columns[0]]));
+          var cleanedData = this.trackingData.map(item => (item[this.trackingData.columns[0]]));
           cleanedData.removeIf( function(item, idx){
               return item == ";";
-          })*/
-            console.log(cleanedData)
+          })
+        
          
       },
       deep: true,
