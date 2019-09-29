@@ -342,7 +342,7 @@ function drawCalendar(){
                     .style("fill", "white") 
                     .attr("transform", "translate(" + d3CalendarGlobals.gridXTranslation + "," + d3CalendarGlobals.gridYTranslation + ")")
                     .attr("class","rect")
-                    .on("click", function(){ $(".modal").toggle(); });
+                    .on("click", function(e){ $(".modal").toggle(); console.log(e)});
                     
 
             var daysOfTheWeek = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag", "Søndag"];

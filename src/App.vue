@@ -2,15 +2,17 @@
 
 <template>
   <div id="app">
-    
-    <CalendarWeek :trackingData=loadData />
-
+    <div class="row">
+      <div class="col"><CalendarWeek :trackingData=loadData /></div>
+      <div class="col"><CategoryPicker v-model="items" :items="items"></CategoryPicker></div>
+    </div>
   </div>
 </template>
 
 <script>
-// import Chart from './components/Chart'
+//import Chart from './components/Chart'
 import CalendarWeek from './components/CalendarWeek'
+import CategoryPicker from './components/CategoryPicker'
 import Modal from './components/Modal'
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.min.css'
@@ -24,14 +26,21 @@ export default {
   name: 'app',
   components: {
     CalendarWeek,
-    Modal
+    Modal,
+    CategoryPicker
   }, data(){
     return {
        modalOpen: false,
-      loadData: {}
+      loadData: {},
+        items: [
+            { text: 'Venner', hex:"#F4D03F"},
+            { text: 'Familie', hex:"#229954"},
+            { text: 'Arbejde', hex:"#9B59B6"}
+        ]
     };
     
   }, mounted() {
+    
     this.fetchData(); 
 
    
@@ -39,10 +48,8 @@ export default {
     async fetchData() {
        let data = await d3.csv("/data/ptsd_filtered.csv");
        this.loadData = data;  
-    },
-     openModal() {
-            this.modalOpen = !this.modalOpen;
-        }  
+    }
+       
   }
 }
 
@@ -66,17 +73,31 @@ export default {
   width: 100% 
 }
 
+#cat {
+  width:38%;
+  margin-top: 50px;
+}
+
+li {list-style-type: none;}
+
 body{
     overflow: hidden;
+}
+
+.swatch{
+  height:10px;
+  width: 10px;
+  position:fixed;
+
 }
 
 .clicked {
   fill: cadetblue !important;
 }
 
-.headers {
+.headers, #cat {
   font-size: 12px;
-
+  
 }
 
 </style>
