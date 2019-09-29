@@ -4,7 +4,7 @@
 <ul id="cat">
  
     <li v-for="item in items" :key="item.text">
-        <div class="swatch" :style="{ background: item.hex }" v-on:click="categoryClicked(item.hex)"></div> {{item.text}}
+        <div class="swatch" :style="{ background: item.hex }" v-on:click="categoryClicked(item.hex)"></div> {{item.text}} <br><br>
         </li>    
 </ul>
 </template>
@@ -17,7 +17,8 @@
       props: ["items", "chosenRect"],
       methods: {
         categoryClicked: function(color){
-          console.log(color)
+          
+          $("#"+this.chosenRect[0].toString()+this.chosenRect[1].toString()).css("fill", color);
         }
       }
     }

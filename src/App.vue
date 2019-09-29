@@ -1,5 +1,3 @@
-
-
 <template>
   <div id="app">
     <div class="row">
@@ -10,14 +8,11 @@
 </template>
 
 <script>
-//import Chart from './components/Chart'
 import CalendarWeek from './components/CalendarWeek'
 import CategoryPicker from './components/CategoryPicker'
-import Modal from './components/Modal'
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import * as d3 from 'd3'
-// import data from "/data/ptsd_filtered.csv";
 
 window.$ = require('jquery')
 window.JQuery = require('jquery')
@@ -26,11 +21,9 @@ export default {
   name: 'app',
   components: {
     CalendarWeek,
-    Modal,
     CategoryPicker
   }, data(){
     return {
-       modalOpen: false,
       loadData: {},
         items: [
             { text: 'Venner', hex:"#F4D03F"},
@@ -70,12 +63,14 @@ export default {
   float: left;
   left: 33%;
   top: 30%;
-  width: 100% 
+  display:block;
+  width:40%;
+  height:50%;
 }
+
 
 #cat {
   width:38%;
-  margin-top: 50px;
 }
 
 li {list-style-type: none;}
@@ -85,10 +80,9 @@ body{
 }
 
 .swatch{
-  height:10px;
-  width: 10px;
+  height:20px;
+  width: 20px;
   position:fixed;
-
 }
 
 .clicked {

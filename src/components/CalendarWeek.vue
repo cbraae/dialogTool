@@ -1,6 +1,7 @@
 
 <template>
   <div>
+       <Modal ref="modal" v-model="modalOpen" :chosenRect="chosenRect"></Modal>
     <div>
       <button
         id="back"
@@ -18,7 +19,7 @@
     </div>
 
     <div id="chart"></div>
-    <Modal ref="modal" v-model="modalOpen"></Modal>
+   
   </div>
 </template>
 
@@ -32,20 +33,17 @@ import Vue from "vue";
 import App from "../App.vue";
 import "bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
-import Vuex from "vuex";
-import { vueInstance } from "@/main";
 
-Vue.use(Vuex);
 
 export default {
   name: "CalendarWeek",
-  props: ["trackingData", "parsedData", "ChosenRect"],
+  props: ["trackingData", "parsedData"],
   components: {
     Modal
   },
   data() {
     return {
-      modalOpen: false,
+      modalOpen: true,
       calendarWidth: 1000,
       calendarHeight: 600,
       gridXTranslation: 80,
@@ -68,21 +66,18 @@ export default {
       ],
       publicGridWidth: 980,
       publicGridHeight: 560,
-      publicCellWidth: (this.publicGridWidth/7),
-      publicCellHeight: (this.publicGridHeight/8),
-      cellPositions: [], 
+      publicCellWidth: this.publicGridWidth / 7,
+      publicCellHeight: this.publicGridHeight / 8,
+      cellPositions: [],
       cleanData: [],
       calendar: "",
       chartsGroup: "",
       curr: [],
       data: [],
+      chosenRect:""
     };
   },
-  mounted() {
-    
-   
-
-  },
+  mounted() {},
   watch: {
     trackingData: {
       handler: function() {
@@ -98,6 +93,8 @@ export default {
         this.curr = this.getCurrentWeek(this.cleanData, this.currentMonday);
         this.data = this.getDataForWeek(this.curr);
         this.drawGraphsForMonthlyData(this.data);
+        d3.selectAll(".rect").on("click", this.openModal);
+        
       },
       deep: true,
       immediate: true
@@ -108,15 +105,18 @@ export default {
   },
   methods: {
     openModal(event) {
+      this.chosenRect = event;
       this.modalOpen = !this.modalOpen;
+      
     },
     publicGridCellPositions() {
-      // We store the top left positions of a 7 by 5 grid. These positions will be our reference points for drawing
-      // various objects such as the rectangular grids, the text indicating the date etc.
       var cellPositions = [];
       for (var y = 0; y < 8; y++) {
         for (var x = 0; x < 7; x++) {
-          cellPositions.push([x * (this.publicGridWidth / 7), y * (this.publicGridHeight / 8)]);
+          cellPositions.push([
+            x * (this.publicGridWidth / 7),
+            y * (this.publicGridHeight / 8)
+          ]);
         }
       }
       return cellPositions;
@@ -131,8 +131,9 @@ export default {
     },
     displayPreviousWeek() {
       // We keep track of user's "back" and "forward" presses in this counter
-      this.curr = this.getCurrentWeek(this.cleanData, new Date(this.currentMonday.setDate( this.currentMonday.getDate() - 7)
-        )
+      this.curr = this.getCurrentWeek(
+        this.cleanData,
+        new Date(this.currentMonday.setDate(this.currentMonday.getDate() - 7))
       );
       this.data = this.getDataForWeek(this.curr);
       this.drawGraphsForMonthlyData(this.data);
@@ -140,11 +141,7 @@ export default {
     displayNextWeek() {
       this.curr = this.getCurrentWeek(
         this.cleanData,
-        new Date(
-          this.currentMonday.setDate(
-            this.currentMonday.getDate() + 7
-          )
-        )
+        new Date(this.currentMonday.setDate(this.currentMonday.getDate() + 7))
       );
       this.data = this.getDataForWeek(this.curr);
       this.drawGraphsForMonthlyData(this.data);
@@ -172,7 +169,7 @@ export default {
           }
         }
       }
-      
+
       return currentWeek;
     },
     getDataForWeek(curr) {
@@ -222,8 +219,8 @@ export default {
       var cellPositions = this.publicGridCellPositions();
       var gridXTranslation = this.gridXTranslation;
       var gridYTranslation = this.gridYTranslation;
-      var cellWidth = this.publicGridWidth/7
-      var outerRadius = (cellWidth/3);
+      var cellWidth = this.publicGridWidth / 7;
+      var outerRadius = cellWidth / 3;
       var innerRadius = 0;
       var pie = d3.pie();
       var calendarWidth = this.calendarWidth;
@@ -239,11 +236,10 @@ export default {
       var indexedPieData = [];
       for (var i = 0; i < dataForWeek.length; i++) {
         var pieSlices = pie(dataForWeek[i]);
-
       }
 
       this.chartsGroup.selectAll("circle").remove();
-    
+
       var circles = this.chartsGroup
         .selectAll("circle")
         // use the indexed data so that each pie chart can be draw in a different cell and therefore for a different day
@@ -254,11 +250,9 @@ export default {
         .attr("cx", 8)
         .attr("cy", 8)
         .attr("r", function(d, i) {
-         
           return d * 2;
         })
         .attr("transform", function(d, i) {
-
           var currentDataIndex = i;
           return (
             "translate(" +
@@ -273,42 +267,41 @@ export default {
               25) +
             ")"
           );
-        }); 
-        
+        });
     },
-    renderCalendarGrid() {  
-   var cellPositions = this.publicGridCellPositions();
+    renderCalendarGrid() {
+      var cellPositions = this.publicGridCellPositions();
       var gridXTranslation = this.gridXTranslation;
       var gridYTranslation = this.gridYTranslation;
-      var cellWidth = this.publicGridWidth/7;
-      var cellHeight = this.publicGridHeight/8;
-      var outerRadius = (cellWidth/3);
+      var cellWidth = this.publicGridWidth / 7;
+      var cellHeight = this.publicGridHeight / 8;
+      var outerRadius = cellWidth / 3;
       var innerRadius = 0;
       var pie = d3.pie();
       var calendarWidth = this.calendarWidth;
       var calendarHeight = this.calendarHeight;
       var color = d3.scaleOrdinal(d3.schemeCategory10);
+      var currentRect = "";
       var arc = d3
         .arc()
         .innerRadius(innerRadius)
         .outerRadius(outerRadius);
 
-
       // Add the svg element.
-      var calendarChart = d3
+      this.calendarChart = d3
         .select("#chart")
         .append("svg")
         .attr("class", "calendar")
-        .attr(
-          "width",
-         calendarWidth + gridXTranslation
-        )
+        .attr("width", calendarWidth + gridXTranslation)
         .attr("height", calendarHeight)
         .append("g");
 
+
+        
       // Draw rectangles at the appropriate postions, starting from the top left corner. Since we want to leave some room for the heading and buttons,
       // use the gridXTranslation and gridYTranslation variables.
-       calendarChart.selectAll("rect")
+      this.calendarChart
+        .selectAll("rect")
         .data(cellPositions)
         .enter()
         .append("rect")
@@ -322,18 +315,14 @@ export default {
         .attr("height", cellHeight)
         .style("stroke", "#555")
         .style("fill", "white")
+        .attr("id", function(d){
+            return d[0].toString()+d[1].toString();
+        })
         .attr(
           "transform",
-          "translate(" +
-            gridXTranslation +
-            "," +
-            gridYTranslation +
-            ")"
+          "translate(" + gridXTranslation + "," + gridYTranslation + ")"
         )
-        .attr("class", "rect")
-        .on("click", function() {
-          $(".modal").toggle();
-        });
+        .attr("class", "rect");
 
       var y = d3
         .scaleTime()
@@ -342,16 +331,12 @@ export default {
 
       var yAxis = d3.axisLeft().scale(y);
 
-      calendarChart
+      this.calendarChart
         .append("g")
         .attr("class", "yaxis")
         .attr(
           "transform",
-          "translate(" +
-            gridXTranslation +
-            "," +
-            gridYTranslation +
-            ")"
+          "translate(" + gridXTranslation + "," + gridYTranslation + ")"
         )
         .call(yAxis);
 
@@ -364,14 +349,27 @@ export default {
         "Lørdag",
         "Søndag"
       ];
+
       // This adds the day of the week headings on top of the grid
-    
+      this.calendarChart
+        .selectAll("headers")
+        .data([0, 1, 2, 3, 4, 5, 6])
+        .enter()
+        .append("text")
+        .attr("class", "headers")
+        .attr("x", function(d) {
+          return cellPositions[d][0];
+        })
+        .attr("y", function(d) {
+          return cellPositions[d][1];
+        })
+        .attr("dx", gridXTranslation + 5) // right padding
+        .attr("dy", 30) // vertical alignment : middle
+        .text(function(d) {
+          return daysOfTheWeek[d];
+        });
 
-      this.chartsGroup = calendarChart.append(
-        "svg:g"
-      );
-      // Call the function to draw the charts in the cells. This will be called again each time the user presses the forward or backward buttons.
-
+      this.chartsGroup = this.calendarChart.append("svg:g");
     }
   }
 };

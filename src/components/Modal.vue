@@ -1,11 +1,9 @@
-
-
 <template>
-      <div class="modal modal-dialog" v-show="value">
+      <div class="modal" v-show="value">
         <div class="modal-content">
           <div class="modal-header">Kategoriser</div>
           <p> Vælg en kategori</p> 
-          <CategoryPicker v-model="items" :items="items"></CategoryPicker>
+          <CategoryPicker v-model="items" :items="items" :chosenRect="this.chosenRect"></CategoryPicker>
           <button @click.prevent="close" class="mt-3 border-b border-teal font-semibold">Close</button>
         </div>
       </div>
@@ -22,11 +20,7 @@ window.JQuery = require('jquery')
 
 export default {
     name: "Modal", 
-    props:  {
-        value: {
-            required: true
-        }, 
-    },
+    props: ["value", "chosenRect"],
     components: {
         CategoryPicker
     },
@@ -45,14 +39,14 @@ export default {
      }
 };
 
-
+/*
 $(document).ready(function(){
      
     function alignModal(){
         var modalDialog = $(this).find(".modal-dialog");
         /* Applying the top margin on modal dialog to align it vertically center */
         
-        modalDialog.css("margin-top", Math.max(0, ($(window).height() - modalDialog.height()) / 2));
+   /*     modalDialog.css("margin-top", Math.max(0, ($(window).height() - modalDialog.height()) / 2));
     }
     // Align modal when it is displayed
     $(".modal").on("shown.bs.modal", alignModal);
@@ -61,6 +55,6 @@ $(document).ready(function(){
     $(window).on("resize", function(){
         $(".modal:visible").each(alignModal);
     });   
-});
+}); */
 </script>
 
