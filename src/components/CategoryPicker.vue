@@ -2,30 +2,35 @@
 
 <template>
 <div>
-<ul id="cat">
- 
-    <li v-for="item in items" :key="item.text">
-        <div class="swatch" :style="{ background: item.hex}" v-bind:value="value" v-on:click="categoryClicked(item.hex)"></div> {{item.text}} <br><br>
-        </li>    
-</ul>
-
 
 <!-- Modal asking for repetition-->
-  <div class="modal modal-dialog modal-sm" id="myModal" v-if="modalOpen">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <!-- Modal Header -->
-      <div class="modal-header">
-        <h4 class="modal-title">Gentag?</h4>
-        <button type="button" class="close" @click="closeModal" data-dismiss="modal">&times;</button>
-      </div>
-      <!-- Modal footer -->
-      <div class="modal-footer">
-        <button type="button" class="btn" @click="openRepModal">Ja</button>
-         <button type="button" class="btn" data-dismiss="modal" @click="closeModal">Nej</button>
+  <div class="modal modal-dialog modal-sm float-left" id="myModal" v-if="modalOpen">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <b>Gentag?</b>
+          <button type="button" class="close" @click="closeModal" data-dismiss="modal">&times;</button>
+        </div>
+        <!-- Modal footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" @click="openRepModal">Ja</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="closeModal">Nej</button>
+        </div>
       </div>
     </div>
   </div>
+
+<ul id="cat">
+      <li v-for="item in items" :key="item.text">
+          <div class="swatch" :style="{ background: item.hex}" v-bind:value="value" v-on:click="categoryClicked(item.hex)"></div> {{item.text}} <br><br>
+      </li>    
+</ul>
+<div>
+  <input v-model="categoryName" id="addCategory" placeholder="Tilføj Kategori"/> 
+  <button type="button" class="btn btn-secondary" id="SaveBTN" @click="saveCat">Tilføj</button>
+
+
 </div>
 
 </div>
@@ -36,19 +41,31 @@
 import "bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Modal from './Modal'
-
     export default {
       name: "CategoryPicker",
       props: ["items", "chosenRect", "value", "catDict", "chosenDateTime","repModalOpen", "color"],
       components: {
-        Modal 
+        Modal
       },data() {
         return {
-          modalOpen:false
+          modalOpen:false,
+          categoryName: ""
         };
       },
       
       methods: {
+        saveCat: function(event){
+          this.items.push({ text: this.categoryName, hex: this.getRandomColor()});
+          this.categoryName = "";
+        },
+        getRandomColor: function() {
+          var letters = '0123456789ABCDEF';
+          var color = '#';
+          for (var i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+          }
+          return color;
+        },
         closeModal: function() {
           this.modalOpen = false;
         },
@@ -59,8 +76,11 @@ import Modal from './Modal'
         },
         
         categoryClicked: function(color){
+          if(this.chosenRect.length > 0) {
           this.modalOpen = !this.modalOpen;
           this.color = color;
+          
+
           this.chosenRect.forEach(element => {
 
             if($("#"+Math.floor(element[0]).toString()+Math.floor(element[1]).toString()).hasClass("selected"))
@@ -77,12 +97,13 @@ import Modal from './Modal'
 
          this.chosenDateTime.forEach(date => {
               this.$set(this.catDict, date, color)
-            
+          
          })
 
           this.$emit('update:catDict', this.catDict)
           this.$emit('update:color', this.color)
           this.$emit('input', !this.value)
+          }
         }
       }
     }

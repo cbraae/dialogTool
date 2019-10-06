@@ -52,23 +52,50 @@ export default {
   margin-top: 60px;
 }
 
-.modal {
+.modal{
   position: absolute;
   float: left;
   left: 33%;
   top: 30%;
   display:block;
-  width:40%;
-  height:50%;
+  width:30%;
+  font-size: 12px;
+  /*height:50%;*/
+}
+
+#addCategory {
+  float:left;
+  width:150px;
+  height:36px;
+}
+#SaveBTN {
+  float:left;
+}
+
+::placeholder{
+  font-size:12px;
+}
+
+.modal-sm {
+  margin-left:-130px;
+}
+
+.selector {
+  width:100px;
 }
 
 #chart, .headers {
-  color: #ccc4c4;
-  
+  color: #ccc4c4; 
 }
 
-.btn-secondary {
+.propleft {
+  float:left;
+  margin-left:10px;
+}
+
+.btn-secondary, .btn-primary {
   font-size:12px;
+  margin:2px;
 }
 
 #forward {
@@ -124,7 +151,7 @@ body{
 }
 
 .repChooser{
-  width:50%
+  width:48%
 }
 
 .prop {

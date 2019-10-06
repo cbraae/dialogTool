@@ -1,33 +1,36 @@
 <template>
       <div class="modal" v-show="value">
         <div class="modal-content">
-          <div class="modal-header">Opret Gentagelse</div>
-            <div><p class="repChooser prop"> gentagelse: </p>
-            <select class="repChooser" v-model="selected">
+          <div class="modal-header"><b>Opret Gentagelse</b></div>
+            <div>
+            <div><p class="repChooser propleft"> Gentagelse: </p></div>
+            <div>
+            <select class="repChooser prop selector" v-model="selected">
               <option value="day">Hver dag</option>
               <option value="week">Hver Uge</option>
               <option value="month">Hver måned</option>
             </select> 
           </div>
+          </div>
         <div> 
-           <div><p class="repChooser prop"> Fra klokken </p> </div>
-           <div><input type="time" v-model="timeStart"></div>   
+           <div><p class="repChooser propleft"> Fra klokken: </p> </div>
+           <div><input type="time" v-model="timeStart" class="prop"></div>   
         </div>
           <div> 
-           <div><p class="repChooser prop"> Til klokken </p> </div>
-           <div><input type="time" v-model="timeEnd" ></div>   
+           <div><p class="repChooser propleft"> Til klokken: </p> </div>
+           <div><input type="time" v-model="timeEnd" class="prop" ></div>   
         </div>
         <div> 
-           <div><p class="repChooser prop"> Gentagelse start: </p> </div>
-           <div><datetime v-model="dateStart"></datetime> </div>    
+           <div><p class="repChooser propleft"> Gentagelse start: </p> </div>
+           <div><datetime v-model="dateStart" class="prop"></datetime> </div>    
         </div>
         <div> 
-           <div><p class="repChooser prop"> Gentagelse slut: </p> </div>
-           <div><datetime v-model="dateEnd"></datetime>  </div>   
+           <div><p class="repChooser propleft"> Gentagelse slut: </p> </div>
+           <div><datetime v-model="dateEnd" class="prop"></datetime>  </div>   
         </div>
         <div>
-          <button @click.prevent="close" class="mt-3 border-b border-teal font-semibold repChooser prop">Fortryd</button>
-          <button @click="save" class="mt-3 border-b border-teal font-semibold repChooser">Gem</button>
+          <button @click.prevent="close" class="btn btn-secondary repChooser prop">Fortryd</button>
+          <button @click="save" class="btn btn-secondary prop repChooser">Gem</button>
         </div>
         </div>
       </div>

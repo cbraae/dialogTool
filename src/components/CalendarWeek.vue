@@ -2,7 +2,7 @@
 <template>
   <div class="row">
        <Modal ref="modal" v-model="repModalOpen" :catDict.sync="catDict" :endTime="endTime" :startTime="startTime" :firstChosenDay="firstChosenDay" :lastChosenDay="lastChosenDay" :color="color"> </Modal>
-    <div class="col col-sm">
+    <div class="col col-sm col-8">
       <div>
       <button
         id="back"
@@ -23,9 +23,9 @@
     <div id="chart"></div>
     </div>
     
-    <div class="col col-sm" id="categorySection">
+    <div class="col col-sm col-4" id="categorySection">
     <h4 id="categoryHeader"> KATEGORIER </h4>
-    <CategoryPicker :chosenRect="chosenRect" :chosenDateTime="chosenDateTime" v-model="parentValue" :color.sync="color" :items="items" :repModalOpen.sync="repModalOpen" :catDict.sync="catDict"></CategoryPicker>
+    <CategoryPicker :chosenRect="chosenRect" :chosenDateTime="chosenDateTime" v-model="parentValue" :color.sync="color" :items.sync="items" :repModalOpen.sync="repModalOpen" :catDict.sync="catDict"></CategoryPicker>
     </div>
   </div>
   
