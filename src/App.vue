@@ -1,18 +1,17 @@
 <template>
+
   <div id="app">
-    <div class="row">
-      <div class="col"><CalendarWeek :trackingData=loadData /></div>
-      <div class="col"><CategoryPicker v-model="items" :items="items"></CategoryPicker></div>
-    </div>
+    
+     <CalendarWeek :trackingData=loadData />
   </div>
 </template>
 
 <script>
 import CalendarWeek from './components/CalendarWeek'
-import CategoryPicker from './components/CategoryPicker'
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import * as d3 from 'd3'
+
 
 window.$ = require('jquery')
 window.JQuery = require('jquery')
@@ -21,15 +20,10 @@ export default {
   name: 'app',
   components: {
     CalendarWeek,
-    CategoryPicker
   }, data(){
     return {
       loadData: {},
-        items: [
-            { text: 'Venner', hex:"#F4D03F"},
-            { text: 'Familie', hex:"#229954"},
-            { text: 'Arbejde', hex:"#9B59B6"}
-        ]
+       
     };
     
   }, mounted() {
@@ -68,9 +62,36 @@ export default {
   height:50%;
 }
 
+#chart, .headers {
+  color: #ccc4c4;
+  
+}
+
+.btn-secondary {
+  font-size:12px;
+}
+
+#forward {
+  float:right;
+  margin-right:20px;
+}
+#back {
+  float:left;
+  margin-left:55px;
+}
+
+
+#categoryHeader {
+ float:left;
+  margin-top:75px;
+  font-family: "Lucida Sans Unicode";
+  color:#746d6d;
+}
 
 #cat {
   width:38%;
+  margin-top:130px;
+  margin-left:-40px;
 }
 
 li {list-style-type: none;}
@@ -79,19 +100,35 @@ body{
     overflow: hidden;
 }
 
+
 .swatch{
   height:20px;
   width: 20px;
   position:fixed;
+  opacity: 0.5
 }
 
 .clicked {
   fill: cadetblue !important;
 }
 
-.headers, #cat {
+.headers, #cat, .weekDate {
   font-size: 12px;
   
+}
+
+
+.selected {
+  fill: #007bff !important;
+  fill-opacity: 0.1;
+}
+
+.repChooser{
+  width:50%
+}
+
+.prop {
+  float: left;
 }
 
 </style>
