@@ -8,7 +8,6 @@
             <select class="repChooser prop selector" v-model="selected">
               <option value="day">Hver dag</option>
               <option value="week">Hver Uge</option>
-              <option value="month">Hver måned</option>
             </select> 
           </div>
           </div>
@@ -52,7 +51,7 @@ Vue.use(Datetime)
 
 export default {
     name: "Modal", 
-    props: ["value", "chosenRect", "catDict", "color", "lastChosenDay", "firstChosenDay", "startTime", "endTime"],
+    props: ["value", "chosenRect", "catDict", "color", "lastChosenDay", "firstChosenDay", "startTime", "endTime", "chosenDateTime"],
     watch: {
       lastChosenDay:{
         handler: function(){     
@@ -90,7 +89,18 @@ export default {
 
             dates.forEach( date => {
               hours.forEach ( time => {
-                this.$set(this.catDict, [date, time], this.color)
+                this.chosenDateTime.forEach ( chosen => {
+                  if(this.selected == "week"){
+                    if(new Date(chosen).getDay() == date.getDay()){
+                      this.$set(this.catDict, [date, time], this.color)
+                    }}
+
+                  if(this.selected == "day"){
+                    this.$set(this.catDict, [date, time], this.color);
+                  }
+
+                })
+              
               })
             })
         },

@@ -1,9 +1,9 @@
 
 <template>
   <div class="row">
-       <Modal ref="modal" v-model="repModalOpen" :catDict.sync="catDict" :endTime="endTime" :startTime="startTime" :firstChosenDay="firstChosenDay" :lastChosenDay="lastChosenDay" :color="color"> </Modal>
+       <Modal ref="modal" v-model="repModalOpen" :catDict.sync="catDict" :endTime="endTime" :startTime="startTime" :firstChosenDay="firstChosenDay" :lastChosenDay="lastChosenDay" :color="color" :chosenDateTime="chosenDateTime"> </Modal>
     <div class="col col-sm col-8">
-      <div>
+      <div class="buttonGroup">
       <button
         id="back"
         name="back"
@@ -57,7 +57,7 @@ export default {
       catDict: {},
       color:"",
       calendarWidth: 1000,
-      calendarHeight: 600,
+      calendarHeight: 500,
       gridXTranslation: 80,
       gridYTranslation: 40,
       currentMonth: new Date().getMonth(),
@@ -78,7 +78,7 @@ export default {
         "December"
       ],
       publicGridWidth: 980,
-      publicGridHeight: 560,
+      publicGridHeight: 460,
       publicCellWidth: this.publicGridWidth / 7,
       publicCellHeight: this.publicGridHeight / 8,
       cellPositions: [],
@@ -90,9 +90,9 @@ export default {
       chosenRect: [],
       chosenDateTime: [],
        items: [
-            { text: 'Venner', hex:"#F4D03F"},
-            { text: 'Familie', hex:"#229954"},
-            { text: 'Arbejde', hex:"#9B59B6"}
+            { text: 'Venner', hex:"#8dd3c7"},
+            { text: 'Familie', hex:"#ffffb3"},
+            { text: 'Arbejde', hex:"#bebada"}
         ],
       parentValue: false,
       dict: [],
@@ -104,14 +104,19 @@ export default {
     };
   },
   mounted() {
+       
+
     if (localStorage.getItem('catDict')){
      this.catDict = JSON.parse(localStorage.getItem('catDict'));
-    }
+    };
+    if (localStorage.getItem('categories')){
+     this.items = JSON.parse(localStorage.getItem('categories'));
+    };
+     this.drawCalender();
   },
   watch: {
     catDict:{
       handler: function(){
-        
         if(Object.entries(this.catDict).length > 0) {
             localStorage.setItem('catDict', JSON.stringify(this.catDict));
         }
@@ -120,20 +125,33 @@ export default {
       deep: true,
       immediate: true
     },
-
+      items:{
+      handler: function(){
+        if(Object.entries(this.items).length > 3) {
+            localStorage.setItem('categories', JSON.stringify(this.items));
+        }
+        
+      },
+      deep: true,
+      immediate: true
+    },
+    repModalOpen: {
+       handler: function(){
+         if(!this.repModalOpen) {
+           this.deleteGraph();
+           this.drawCalender();
+         }
+       } 
+    },
     trackingData: {
       handler: function() {
-        var cleanedData = this.trackingData.map(
-          item => item[this.trackingData.columns[0]]
-        );
-        cleanedData.removeIf(function(item, idx) {
-          return item == ";";
-        });
-        this.cleanData = cleanedData;
+        
+        if(this.trackingData.length > 1) {
+        this.cleanData = this.trackingData;
         this.currentMonday = this.findTheMonday(this.cleanData);
         this.dict = this.getDayTimeDict();
         this.curr = this.getCurrentWeek(this.cleanData, this.currentMonday);
-        this.drawCalender();
+        }
       },
       deep: true,
       immediate: true
@@ -282,29 +300,31 @@ export default {
       var currentWeek = [];
       var stopFlag = false;
       var offset = 0;
-      var currentMonday = "";
+      var currentMonday = monday;
       var currentSunday = -1;
 
       for (var i = 0; i < data.length; i++) {
         var timeStamp = data[i].split(";")[0];
         var dt = new Date(timeStamp);
         if (dt >= monday) {
-          if (dt.getDay() == 1 && !stopFlag) {
-            currentMonday = dt;
+
+          var diff = dt.getDate() - 1
+          dt.setDate
+           
             var currentSunday = new Date(
-              currentMonday.setDate(currentMonday.getDate() + 6)
+              new Date(currentMonday).setDate(currentMonday.getDate() + 6)
             );
             stopFlag = true;
           }
           if (currentSunday !== -1 && dt < currentSunday) {
             currentWeek.push(dt);
           }
-        }
-      }
 
+      }
       return currentWeek;
     },
     getDataForWeek(curr) {
+      
       var weekMatrix = [];
       for (var i = 0; i < 24; i++) {
         weekMatrix[i] = new Array(7).fill(0);
@@ -317,7 +337,6 @@ export default {
         if (currentDay == -1) {
           currentDay = 6;
         }
-
         weekMatrix[hours][currentDay] +=1;
         
       }
@@ -362,10 +381,11 @@ export default {
         .attr("cx", 8)
         .attr("cy", 8)
         .attr("r", function(d, i) {
-          return d;
+          return (Math.sqrt(d *4/Math.PI)) * 2;
         })
         .attr("transform", function(d, i) {
           var currentDataIndex = i;
+          
           return (
             "translate(" +
             (outerRadius +
@@ -374,7 +394,7 @@ export default {
               1.02 +
             ", " +
             (outerRadius +
-              gridYTranslation +
+              gridYTranslation - 8 +
               cellPositions[currentDataIndex][1] -
               20) +
             ")"
@@ -384,6 +404,7 @@ export default {
 
     },
     renderCalendarGrid() {
+     
       var cellPositions = this.publicGridCellPositions();
       var gridXTranslation = this.gridXTranslation;
       var gridYTranslation = this.gridYTranslation;
@@ -408,6 +429,7 @@ export default {
         .attr("width", calendarWidth + gridXTranslation)
         .attr("height", calendarHeight)
         .append("g");
+
 
       // Draw rectangles at the appropriate postions, starting from the top left corner. Since we want to leave some room for the heading and buttons,
       // use the gridXTranslation and gridYTranslation variables.

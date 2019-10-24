@@ -1,13 +1,19 @@
 <template>
 
   <div id="app">
-    
-     <CalendarWeek :trackingData=loadData />
+     <nav class="navbar navbar-dark bg-dark" id="header">
+      <button @click="toggleView" class="btn btn-secondary headerbtn"> Skift visning </button>  
+      </nav>
+
+     <CalendarWeek v-if="showCalendar" :trackingData=loadData />
+     <CalendarMonth v-if="!showCalendar" :trackingData=loadData />
+     
   </div>
 </template>
 
 <script>
 import CalendarWeek from './components/CalendarWeek'
+import CalendarMonth from './components/CalendarMonth'
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import * as d3 from 'd3'
@@ -19,37 +25,56 @@ window.JQuery = require('jquery')
 export default {
   name: 'app',
   components: {
-    CalendarWeek,
+    CalendarMonth, 
+    CalendarWeek
   }, data(){
     return {
       loadData: {},
-       
-    };
-    
+      showCalendar: true,
+    }; 
   }, mounted() {
-    
     this.fetchData(); 
-
-   
   },methods: {
     async fetchData() {
        let data = await d3.csv("/data/ptsd_filtered.csv");
-       this.loadData = data;  
+       var cleanedData = data.map(
+          item => item[data.columns[0]].split("Z")[0]
+        );
+        cleanedData.removeIf(function(item, idx) {
+          return item == ";";
+        });
+        this.loadData = cleanedData;
+    }, toggleView() { 
+        this.showCalendar = !this.showCalendar;
     }
-       
   }
 }
 
 </script>
 
 <style>
+
+#header {
+  position: relative;
+  margin: 0 auto 0;
+  padding-top: 0px;
+  height: 60px;
+  margin-bottom: 80px;
+}
+
+body{
+    margin:0;
+}
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+}
+
+.buttonGroup {
+  margin-bottom:30px;
 }
 
 .modal{
@@ -61,6 +86,10 @@ export default {
   width:30%;
   font-size: 12px;
   /*height:50%;*/
+}
+
+.headerbtn{
+  float:right;
 }
 
 #addCategory {
@@ -84,7 +113,7 @@ export default {
   width:100px;
 }
 
-#chart, .headers {
+#chart, .headers, #month {
   color: #ccc4c4; 
 }
 
@@ -98,7 +127,7 @@ export default {
   margin:2px;
 }
 
-#forward {
+#forward, .headerbtn {
   float:right;
   margin-right:20px;
 }
@@ -132,7 +161,7 @@ body{
   height:20px;
   width: 20px;
   position:fixed;
-  opacity: 0.5
+
 }
 
 .clicked {

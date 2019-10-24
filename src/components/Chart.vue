@@ -2,7 +2,6 @@
 <template>
 <div>
     <div>
-       
         <button id="back" name="back" ></button>
         <button id="forward" name="forward" >></button>
         <label id="currentMonth">September 2019</label>

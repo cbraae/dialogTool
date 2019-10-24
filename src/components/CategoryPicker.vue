@@ -49,14 +49,17 @@ import Modal from './Modal'
       },data() {
         return {
           modalOpen:false,
-          categoryName: ""
+          categoryName: "",
+          colorCounter: 0,
+          colors: [ "#fb8072", "#80b1d3", "#fdb462", "#b3de69", "#fccde5", "#d9d9d9", "#bc80bd","#ccebc5", "#ffed6f"]
         };
       },
       
       methods: {
         saveCat: function(event){
-          this.items.push({ text: this.categoryName, hex: this.getRandomColor()});
+          this.items.push({ text: this.categoryName, hex: this.colors[this.colorCounter]});
           this.categoryName = "";
+          this.colorCounter++;
         },
         getRandomColor: function() {
           var letters = '0123456789ABCDEF';
