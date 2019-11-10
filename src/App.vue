@@ -200,7 +200,7 @@ body{
 }
 
 #cat {
-  width:38%;
+  width:50%;
   margin-top:70px;
   margin-left:-40px;
 }

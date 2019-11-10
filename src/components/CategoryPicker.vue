@@ -23,7 +23,7 @@
 
 <ul id="cat">
       <li v-for="item in items" :key="item.text">
-          <div class="swatch" :style="{ background: item.hex}" v-bind:value="value" v-on:click="categoryClicked(item)"></div> {{item.text}} <br><br>
+          <div class="swatch" :style="{ background: item.hex}" v-bind:value="value" v-on:click="categoryClicked(item)"></div> {{item.text}} <button v-on:click="deleteCategory(item)">Slet</button><br><br>
       </li>    
 </ul>
 <div>
@@ -76,15 +76,14 @@ import Modal from './Modal'
           this.modalOpen = false;
           this.$emit('update:repModalOpen', !this.repModalOpen);
 
-        },
-        
-        categoryClicked: function(item, event){
-
+        },deleteCategory(item){
           var _this = this;
           var index = this.items.indexOf(item);
-              if (index > -1) {
-                _this.$delete(this.items, index);
-              }
+          if (index > -1) {
+            _this.$delete(this.items, index);
+          }
+        },
+        categoryClicked: function(item, event){
          this.color = item.hex;
           if(this.chosenRect.length > 0) {
           this.modalOpen = !this.modalOpen;
