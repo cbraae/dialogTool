@@ -80,11 +80,11 @@ import Modal from './Modal'
         
         categoryClicked: function(item, event){
 
-          var index = this.items.indexOf(this.id);
+          var _this = this;
+          var index = this.items.indexOf(item);
               if (index > -1) {
-                this.delete(this.items, index);
+                _this.$delete(this.items, index);
               }
-          console.log(item)
          this.color = item.hex;
           if(this.chosenRect.length > 0) {
           this.modalOpen = !this.modalOpen;
