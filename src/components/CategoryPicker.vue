@@ -23,7 +23,7 @@
 
 <ul id="cat">
       <li v-for="item in items" :key="item.text">
-          <div class="swatch" :style="{ background: item.hex}" v-bind:value="value" v-on:click="categoryClicked(item.hex)"></div> {{item.text}} <br><br>
+          <div class="swatch" :style="{ background: item.hex}" v-bind:value="value" v-on:click="categoryClicked(item)"></div> {{item.text}} <br><br>
       </li>    
 </ul>
 <div>
@@ -78,18 +78,21 @@ import Modal from './Modal'
 
         },
         
-        categoryClicked: function(color){
-         this.color = color;
+        categoryClicked: function(item, event){
+
+          var index = this.items.indexOf(this.id);
+              if (index > -1) {
+                this.delete(this.items, index);
+              }
+          console.log(item)
+         this.color = item.hex;
           if(this.chosenRect.length > 0) {
           this.modalOpen = !this.modalOpen;
-          
-          
-
+        
           this.chosenRect.forEach(element => {
 
             if($("#"+Math.floor(element[0]).toString()+Math.floor(element[1]).toString()).hasClass("selected"))
             {
-
             $("#"+Math.floor(element[0]).toString()+Math.floor(element[1]).toString()).removeClass("selected");
             $("#"+Math.floor(element[0]).toString()+Math.floor(element[1]).toString()).css({"fill" :color, "fill-opacity": 0.5});
 

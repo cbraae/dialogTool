@@ -24,8 +24,7 @@
               name="undo"
               v-on:click="undo"
               class="btn btn-secondary drawingbuttons"
-            >Visk Ud</button>
-            
+            >Visk Ud</button>         
         </div>
       </div>
     
@@ -291,7 +290,8 @@ export default {
         }
 
       return datesInPeriod;
-    }, createTimeline(){
+    },
+    createTimeline(){
       var justInitialized = true;
       var oldSelection = "";
       var observationsPerDay = this.observationsPerDay;
@@ -333,18 +333,108 @@ export default {
             .style("fill", "none")
             .style("stroke", "none")
 
-        var brush = d3.brushX()
+       /* var brush = d3.brushX()
         .extent([[0, 0], [1000, 100]])
-        .on("brush end", brushed);
+        .on("brush end", brushed); */
       var _this = this;
 
+        var gBrushes = svg.append('g')
+          .attr("class", "brushes");
+
+        var brushes = [];
+
+        function newBrush() {
+          var brush = d3.brushX()
+            .extent([[0, 0], [1000, 100]])
+            .on("brush", brushed)
+            .on("end", brushend)
+          
+
+          brushes.push({id: brushes.length, brush: brush});
+
+          function brushed() {
+            if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
+            var k = d3.event.selection;
+
+
+            var startDate = xScale.invert(k[0])
+            var endDate = xScale.invert(k[1])
+
+            _this.showDrawings(startDate, endDate, this.id);
+                  
+          }
+
+          function brushend() {
+            if(d3.event.sourceEvent.shiftKey){
+              var index = brushes.indexOf(this.id);
+              if (index > -1) {
+                brushes.splice(index, 1);
+              }
+              $(this).remove();
+              _this.showDrawings(null, null, this.id);
+            }
+
+            // Figure out if our latest brush has a selection
+            var lastBrushID = brushes[brushes.length - 1].id;
+            var lastBrush = document.getElementById('brush-' + lastBrushID);
+            var selection = d3.brushSelection(lastBrush);
+
+            // If it does, that means we need another one
+            if (selection && selection[0] !== selection[1]) {
+              newBrush();
+            }
+
+            // Always draw brushes
+            drawBrushes();
+
+            
+          }
+        }
+
+        function drawBrushes() {
+
+          var brushSelection = gBrushes
+            .selectAll('.brush')
+            .data(brushes, function (d){return d.id});
+
+          // Set up new brushes
+          brushSelection.enter()
+            .insert("g", '.brush')
+            .attr('class', 'brush')
+            .attr('id', function(brush){ return "brush-" + brush.id; })
+            .each(function(brushObject) {
+              //call the brush
+              brushObject.brush(d3.select(this));
+            });
+
+          brushSelection
+            .each(function (brushObject){
+              d3.select(this)
+                .attr('class', 'brush')
+                .selectAll('.overlay')
+                .style('pointer-events', function() {
+                  var brush = brushObject.brush;
+                  if (brushObject.id === brushes.length-1 && brush !== undefined ) {
+                    return 'all';
+                  } else {
+                    return 'none';
+                  }
+                })
+            })
+
+          brushSelection.exit()
+            .remove();
+        }
+
+        newBrush();
+        drawBrushes();
        var weekBrush = d3.brushX()
         .extent([[0, 0], [1000, 100]])
         .on("end", dateBrush);
         
-        svg.append("g")
+        /*svg.append("g")
           .attr("class", "brush")
-          .call(brush)
+          .call(brush)*/
 
         var gBrush = svg.append("g")
         .attr("class", "weekbrush")
@@ -356,19 +446,6 @@ export default {
         // removes crosshair cursor
         d3.selectAll('.weekbrush>.overlay').remove();
 
-        
-
-        function brushed() {
-          if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
-         var k = d3.event.selection;
-      
-
-          var startDate = xScale.invert(k[0])
-          var endDate = xScale.invert(k[1])
-
-          _this.showDrawings(startDate, endDate);
-          
-         }
 
         function getMonday(d) {
             d = new Date(d);
@@ -454,8 +531,9 @@ export default {
       }
 
     },
-    showDrawings(startDate, endDate){
-        $(".images").remove();
+    showDrawings(startDate, endDate, id){
+        //$(".images").remove();
+        $("."+id).remove();
         var chosenDays = []
         for(var monday in this.imgDict) {
           var mday = new Date(new Date(monday))
@@ -482,14 +560,14 @@ export default {
             drawing.style.position = "absolute";
             drawing.style.left="60px";
             drawing.style.top="0px";
-            drawing.className = "images"
+            drawing.className = "images "+ id.toString()
             drawing.src = "data:image/png;base64," + this.imgDict[monday];
             container.appendChild(drawing);
 
 
             var image = document.createElement("IMG")
             image.src = "data:image/svg+xml;base64,"+this.svgDict[monday]
-            image.className = "smallMutipless images"
+            image.className = "smallMutipless images " + id.toString()
             image.id = zindex.toString();
             image.style.left = overlayLocation +"px"
             image.style.width = width +"px";
@@ -503,7 +581,7 @@ export default {
             imageOverlay.style.top = "-6px";
             imageOverlay.style.width = width+"px";
             imageOverlay.src = "data:image/png;base64," + this.imgDict[monday];
-            imageOverlay.className = "smallMutipless images"
+            imageOverlay.className = "smallMutipless images "+ id.toString()
             container.appendChild(imageOverlay);
             zindex +=1;
             overlayLocation+=width
@@ -559,6 +637,7 @@ export default {
     },
       setClickEventHandler() {
         d3.selectAll(".rect").on("click", this.handleSelection);
+       
     },
     openModal(event) {
       this.chosenRect = event;
