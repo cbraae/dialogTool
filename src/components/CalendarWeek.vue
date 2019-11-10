@@ -1,72 +1,47 @@
 
 <template>
   <div id="row"> 
-       <Modal ref="modal" v-model="repModalOpen" :catDict.sync="catDict" :endTime="endTime" :startTime="startTime" :firstChosenDay="firstChosenDay" :lastChosenDay="lastChosenDay" :color="color" :chosenDateTime="chosenDateTime"> </Modal>
-    <div id="selector"> </div>
-
-
-    <div class="row">
-      
-      <div class="col-6 col-md-4">
-      <div id="categoryOverview">
-
-
-      </div>
-
-      <!--
-      <button
-        id="clear"
-        name="clear"
-        v-on:click="clearDrawing"
-        class="btn btn-secondary drawingbuttons"
-      >RYD</button>
-            <button
-        id="showDrawings"
-        name="showDrawings"
-        v-on:click="showDrawings"
-        class="btn btn-secondary drawingbuttons"
-      >{{showDrawingsTitle}}</button>
-      -
-      </div>
-      <div class="col-12 col-sm-6 col-md-8"/>
-</div>
-<div class="row">
-    <div class="col-12 col-sm-6 col-md-8">
-      <div class="buttonGroup">
-      <button
-        id="back"
-        name="back"
-        v-on:click="displayPreviousWeek"
-        class="btn btn-secondary"
-      >Sidste uge</button>
-      <span class="weekDate"> Viser ugen {{ this.currentMonday.toISOString().split("T")[0] }} til {{ new Date(new Date(currentMonday).setDate(this.currentMonday.getDate() + 6)).toISOString().split("T")[0] }} </span>
-      <button
-        id="forward"
-        name="forward"
-        v-on:click="displayNextWeek"
-        class="btn btn-secondary"
-      >Næste uge</button>
-      
-      <label id="currentMonth"></label>
-      </div>-->
+      <Modal ref="modal" v-model="repModalOpen" :catDict.sync="catDict" :endTime="endTime" :startTime="startTime" :firstChosenDay="firstChosenDay" :lastChosenDay="lastChosenDay" :color="color" :chosenDateTime="chosenDateTime"> </Modal>
+    <!-- TOP ROW: Timeline og knap-dahsboard -->
+    <div id="row">
      
-    </div>
-     <div class="col-6 col-md-4"/>
-    <button
-        id="save"
-        name="save"
-        v-on:click="saveDrawing"
-        class="btn btn-secondary drawingbuttons"
-      >GEM</button>
-    <div id="chart" class="col-12"></div>
-
-    </div>
+      <div id="selector" class="col-8">  </div> 
+        <div class="col-4 align-self-end buttonGroup">
+          <button
+              id="save"
+              name="save"
+              v-on:click="saveDrawing"
+              class="btn btn-secondary drawingbuttons"
+            >GEM</button>
+            <button
+              id="clear"
+              name="clear"
+              v-on:click="clearDrawing"
+              class="btn btn-secondary drawingbuttons"
+            >RYD</button>
+             <button
+              id="undo"
+              name="undo"
+              v-on:click="undo"
+              class="btn btn-secondary drawingbuttons"
+            >Visk Ud</button>
+            
+        </div>
+      </div>
     
-
-    <div  id="categorySection">
-    <h4 id="categoryHeader"> KATEGORIER </h4>
-    <CategoryPicker :chosenRect="chosenRect" :chosenDateTime="chosenDateTime" v-model="parentValue" :color.sync="color" :items.sync="items" :repModalOpen.sync="repModalOpen" :catDict.sync="catDict"></CategoryPicker>
+    <!-- MidterRække: Kategori-overview -->
+    <div class="row">
+      <div id="categoryOverview" class="col-8"> </div>
     </div>
+
+    <!-- Nederste: Kategori-overview -->
+    <!-- Går i stykker hvis man pakker det ind i en row  -->
+      <div id="chart" class="col-8"></div>
+      <div  id="categorySection" class="col-4">
+        <h4 id="categoryHeader"> KATEGORIER </h4>
+        <CategoryPicker :chosenRect="chosenRect" :chosenDateTime="chosenDateTime" v-model="parentValue" :color.sync="color" :items.sync="items" :repModalOpen.sync="repModalOpen" :catDict.sync="catDict"></CategoryPicker>
+      </div>
+   
   </div>
   
 </template>
@@ -250,7 +225,7 @@ export default {
     },
     color: {
        handler: function() {
-         this.enableDrawing(this.color);
+         this.enableDrawing(this.color, false);
        }
     }
   },
@@ -258,6 +233,10 @@ export default {
     //return this.Chart();
   },
   methods: { 
+    undo(){
+
+      this.enableDrawing("rgba(255,255,255,1)", true)
+    },
     getTotalForEachDay(){
 
       Date.prototype.addDays = function(days) {
@@ -855,7 +834,6 @@ export default {
         });
     },
     createCanvasOverlay() {
-      console.log("hej")
     var canvasContainer = document.getElementById('chart');
     document.body.appendChild(canvasContainer);
     var myCanvas = document.createElement('canvas');
@@ -985,7 +963,7 @@ export default {
       ];
       this.chartsGroup = this.calendarChart.append("svg:g");
 
-    }, enableDrawing(color) {
+    }, enableDrawing(color, eraser) {
        
       const canvas = document.getElementById('drawing-area');
       const canvasContext = canvas.getContext('2d');
@@ -996,11 +974,17 @@ export default {
     // ===================
     // == Configuration ==
     // ===================
-    const lineWidth = 1;
+    var lineWidth = 1;
     const halfLineWidth = lineWidth / 2;
     const fillStyle = color;
     const strokeStyle = color;
     const shadowColor = '#333';
+    canvasContext.globalCompositeOperation="source-over";
+
+      if(eraser){
+        lineWidth= 100;
+        canvasContext.globalCompositeOperation = "destination-out";  
+      }
 
 
     // =====================
@@ -1014,9 +998,6 @@ export default {
     canvas.addEventListener('touchstart', handleWritingStart);
     canvas.addEventListener('touchmove', handleWritingInProgress);
     canvas.addEventListener('touchend', handleDrawingEnd);
-
-    //clearButton.addEventListener('click', handleClearButtonClick);
-
 
     // ====================
     // == Event Handlers ==

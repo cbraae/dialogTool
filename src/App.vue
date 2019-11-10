@@ -102,7 +102,8 @@ body{
 
 
 .buttonGroup {
-  margin-bottom:30px;
+  float:right;
+    margin-top:-180px;
 }
 
 .modal{
@@ -241,14 +242,18 @@ li {list-style-type: none;}
 }
 
 #selector {
-  margin-left:-430px;
+
   fill: none;
-  margin-bottom:-70px;
 }
 /*
 .line {
   stroke: #ccc4c4;
 }*/
+
+#categoryOverview{
+    margin-top:-70px;
+    margin-left:-30px;
+}
 
 .brush {
   min-width: 100px;
