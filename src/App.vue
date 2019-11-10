@@ -17,6 +17,13 @@ import CalendarMonth from './components/CalendarMonth'
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import * as d3 from 'd3'
+/*import {event, select, selectAll} from 'd3-selection';
+import {scaleOrdinal, scaleLinear} from 'd3-scale';
+import {csv} from 'd3-fetch';
+
+//const d3 = {event, select, selectAll, scaleOrdinal, scaleLinear, csv}
+//let d3 = Object.assign({}, d3selection, d3transition, d3event, d3csv)*/
+//d3event === null // true; `event`'s value changes later with user input.
 
 
 window.$ = require('jquery')
@@ -35,6 +42,7 @@ export default {
   }, mounted() {
     this.fetchData(); 
   },methods: {
+   
     async fetchData() {
        let data = await d3.csv("/data/ptsd_filtered.csv");
        var cleanedData = data.map(
@@ -54,16 +62,34 @@ export default {
 
 <style>
 
+.drawing-area-class {
+  width: 100%;
+}
+
+.calendar {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+}
+
+.smallMutipless{
+  margin-top:548px;
+  position: absolute;
+
+}
+
+
 #header {
   position: relative;
   margin: 0 auto 0;
   padding-top: 0px;
-  height: 60px;
-  margin-bottom: 80px;
+  /*height: 60px;*/
+  /*margin-bottom: 80px;*/
 }
 
 body{
     margin:0;
+    overflow-y:scroll;
 }
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
@@ -72,6 +98,8 @@ body{
   text-align: center;
   color: #2c3e50;
 }
+
+
 
 .buttonGroup {
   margin-bottom:30px;
@@ -136,31 +164,54 @@ body{
   margin-left:55px;
 }
 
+#chart {
+  position:relative;
+  width:1000px;
+  left: 0px;
+}
+
+#categorySection{
+  float:right;
+  width:400px;
+}
+
+.drawingbuttons{
+  float:left;
+}
+
+#save{
+  margin-left:50px;
+}
+
+.weekAxis .tick line, .yaxis .tick line {
+        display:none;
+    }
+
+.weekAxis line {
+  display: none;
+}
 
 #categoryHeader {
- float:left;
-  margin-top:75px;
+  float:left;
+  margin-top:30px;
   font-family: "Lucida Sans Unicode";
   color:#746d6d;
 }
 
 #cat {
   width:38%;
-  margin-top:130px;
+  margin-top:70px;
   margin-left:-40px;
 }
 
 li {list-style-type: none;}
 
-body{
-    overflow: hidden;
-}
 
 
 .swatch{
   height:20px;
   width: 20px;
-  position:fixed;
+  position:absolute;
 
 }
 
@@ -173,7 +224,9 @@ body{
   
 }
 
-
+.weekbrush .selection{
+  fill: crimson !important;
+}
 .selected {
   fill: #007bff !important;
   fill-opacity: 0.1;
@@ -185,6 +238,20 @@ body{
 
 .prop {
   float: left;
+}
+
+#selector {
+  margin-left:-430px;
+  fill: none;
+  margin-bottom:-70px;
+}
+/*
+.line {
+  stroke: #ccc4c4;
+}*/
+
+.brush {
+  min-width: 100px;
 }
 
 </style>

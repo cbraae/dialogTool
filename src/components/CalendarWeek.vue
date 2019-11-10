@@ -1,8 +1,37 @@
 
 <template>
-  <div class="row">
+  <div id="row"> 
        <Modal ref="modal" v-model="repModalOpen" :catDict.sync="catDict" :endTime="endTime" :startTime="startTime" :firstChosenDay="firstChosenDay" :lastChosenDay="lastChosenDay" :color="color" :chosenDateTime="chosenDateTime"> </Modal>
-    <div class="col col-sm col-8">
+    <div id="selector"> </div>
+
+
+    <div class="row">
+      
+      <div class="col-6 col-md-4">
+      <div id="categoryOverview">
+
+
+      </div>
+
+      <!--
+      <button
+        id="clear"
+        name="clear"
+        v-on:click="clearDrawing"
+        class="btn btn-secondary drawingbuttons"
+      >RYD</button>
+            <button
+        id="showDrawings"
+        name="showDrawings"
+        v-on:click="showDrawings"
+        class="btn btn-secondary drawingbuttons"
+      >{{showDrawingsTitle}}</button>
+      -
+      </div>
+      <div class="col-12 col-sm-6 col-md-8"/>
+</div>
+<div class="row">
+    <div class="col-12 col-sm-6 col-md-8">
       <div class="buttonGroup">
       <button
         id="back"
@@ -17,13 +46,24 @@
         v-on:click="displayNextWeek"
         class="btn btn-secondary"
       >Næste uge</button>
+      
       <label id="currentMonth"></label>
+      </div>-->
+     
     </div>
+     <div class="col-6 col-md-4"/>
+    <button
+        id="save"
+        name="save"
+        v-on:click="saveDrawing"
+        class="btn btn-secondary drawingbuttons"
+      >GEM</button>
+    <div id="chart" class="col-12"></div>
 
-    <div id="chart"></div>
     </div>
     
-    <div class="col col-sm col-4" id="categorySection">
+
+    <div  id="categorySection">
     <h4 id="categoryHeader"> KATEGORIER </h4>
     <CategoryPicker :chosenRect="chosenRect" :chosenDateTime="chosenDateTime" v-model="parentValue" :color.sync="color" :items.sync="items" :repModalOpen.sync="repModalOpen" :catDict.sync="catDict"></CategoryPicker>
     </div>
@@ -34,7 +74,7 @@
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 
 <script>
-import * as d3 from "d3";
+import * as d3 from 'd3'
 import moment from "moment";
 import Modal from "./Modal";
 import Vue from "vue";
@@ -42,6 +82,7 @@ import App from "../App.vue";
 import "bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import CategoryPicker from './CategoryPicker.vue'
+
 
 
 export default {
@@ -56,6 +97,7 @@ export default {
       repModalOpen: false,
       catDict: {},
       color:"",
+      displayingDrawings:false,
       calendarWidth: 1000,
       calendarHeight: 500,
       gridXTranslation: 80,
@@ -63,6 +105,8 @@ export default {
       currentMonth: new Date().getMonth(),
       currentMonday: new Date(),
       currentSunday: new Date(),
+      showDrawingsTitle: "Vis tidligere kommentarer",
+      numberOfWeeks: 0,
       monthNames: [
         "January",
         "February",
@@ -89,18 +133,24 @@ export default {
       data: [],
       chosenRect: [],
       chosenDateTime: [],
-       items: [
-            { text: 'Venner', hex:"#8dd3c7"},
-            { text: 'Familie', hex:"#ffffb3"},
-            { text: 'Arbejde', hex:"#bebada"}
+       items: [ 
+            { text: 'Venner', hex:"#8e0152"},
+            { text: 'Familie', hex:"#c51b7d"},
+            { text: 'Arbejde', hex:"#de77ae"}
         ],
       parentValue: false,
       dict: [],
       categoryDict: {},
+      categoryOverviewDict:{},
+      imgDict: {},
+      svgDict: {},
       lastChosenDay: "", 
       firstChosenDay: "",
       startTime: "",
-      endTime: ""
+      endTime: "",
+      observationsPerDay: {},
+      categoryNumberDict: {}
+      
     };
   },
   mounted() {
@@ -112,7 +162,35 @@ export default {
     if (localStorage.getItem('categories')){
      this.items = JSON.parse(localStorage.getItem('categories'));
     };
-     this.drawCalender();
+
+    if (localStorage.getItem('imgDict')){
+     this.imgDict = JSON.parse(localStorage.getItem('imgDict'));
+    };
+
+    if (localStorage.getItem('svgDict')){
+     this.svgDict = JSON.parse(localStorage.getItem('svgDict'));
+
+    };
+
+    
+
+    //localStorage.setItem("categoryOverviewDict", JSON.stringify(this.categoryOverviewDict));
+
+    // this.drawCalender();
+    // this.createCanvasOverlay()
+    this.categoryNumberDict = this.initialiseCategoryNumberDict();
+     this.observationsPerDay = this.getTotalForEachDay();
+     this.numberOfWeeks = this.getAmountOfWeeks();
+     
+     if(localStorage.getItem("categoryOverviewDict")){
+      this.categoryOverviewDict = JSON.parse(localStorage.getItem('categoryOverviewDict'));
+    } else {
+      this.categoryOverviewDict = this.initialiseCategoryDict();
+    }
+     this.createTimeline()
+
+    //var weeknumber = this.findCurrentWeekNumber(new Date(this.cleanData[0]))
+
   },
   watch: {
     catDict:{
@@ -125,6 +203,16 @@ export default {
       deep: true,
       immediate: true
     },
+    displayingDrawings: {
+        handler:function() {
+
+            if(this.displayingDrawings) {
+              this.showDrawingsTitle = "Skjul tidligere kommentarer"
+            } else {
+              this.showDrawingsTitle = "Vis tidligere kommentarer"
+            }
+        }
+    },
       items:{
       handler: function(){
         if(Object.entries(this.items).length > 3) {
@@ -135,11 +223,12 @@ export default {
       deep: true,
       immediate: true
     },
+
     repModalOpen: {
        handler: function(){
          if(!this.repModalOpen) {
-           this.deleteGraph();
-           this.drawCalender();
+           /*this.deleteGraph();
+           this.drawCalender();*/
          }
        } 
     },
@@ -147,7 +236,10 @@ export default {
       handler: function() {
         
         if(this.trackingData.length > 1) {
-        this.cleanData = this.trackingData;
+        this.cleanData = this.trackingData.filter(function (el) {
+          return el != "";
+        })
+
         this.currentMonday = this.findTheMonday(this.cleanData);
         this.dict = this.getDayTimeDict();
         this.curr = this.getCurrentWeek(this.cleanData, this.currentMonday);
@@ -155,18 +247,299 @@ export default {
       },
       deep: true,
       immediate: true
+    },
+    color: {
+       handler: function() {
+         this.enableDrawing(this.color);
+       }
     }
   },
   output() {
-    return this.Chart();
+    //return this.Chart();
   },
   methods: { 
+    getTotalForEachDay(){
+
+      Date.prototype.addDays = function(days) {
+          var date = new Date(this.valueOf());
+          date.setDate(date.getDate() + days);
+          date.setHours(0,0,0,0)
+          return date;
+      }
+
+      function getDates(startDate, stopDate) {
+          var dateArray = new Array();
+          var currentDate = startDate;
+          while (currentDate <= stopDate) {
+              dateArray.push({date: new Date (currentDate), count: 0});
+              currentDate = currentDate.addDays(1);
+              currentDate.setHours(0,0,0,0)
+          }
+          return dateArray;
+      }
+
+      var datesInPeriod= getDates(new Date(new Date(this.cleanData[0])) ,new Date( new Date(this.cleanData[this.cleanData.length-1])))
+
+      var tally = [];
+      var firstTime = true
+      var lastDate = new Date( new Date(this.cleanData[0]))
+      lastDate.setHours(0,0,0,0)  
+      var dateCounter = 0
+
+      var cleanData = this.cleanData;
+      var counter = 0
+
+    cleanData.forEach(function(line) {
+              var date = new Date( new Date(line))
+              date.setHours(0,0,0,0)
+              if(lastDate.getTime()===date.getTime() ){
+                dateCounter++;
+              } else { 
+                tally.push({date:date,count:dateCounter})
+                dateCounter = 0;
+              }
+              lastDate = date;
+
+      });
+
+    
+        for(var i=0; i < tally.length; i++){
+             for(var j = 0; j < datesInPeriod.length; j++ ) {
+              if(tally[i].date.getTime() == datesInPeriod[j].date.getTime()){
+                datesInPeriod[j].count = tally[i].count
+              } 
+          }
+        }
+
+      return datesInPeriod;
+    }, createTimeline(){
+      var justInitialized = true;
+      var oldSelection = "";
+      var observationsPerDay = this.observationsPerDay;
+      
+      var xScale = d3.scaleTime()
+        .domain([
+          d3.min(observationsPerDay, function(d){return d.date; }),
+          d3.max(observationsPerDay, function(d){return d.date; })
+        ])
+        .range([0, 1000])
+        
+       var yScale = d3.scaleLinear()
+        .domain([0, d3.max(observationsPerDay, function(d){return d.count; })]).range([100,0])
+
+        var line = d3.line()
+        .x(function(d) { return xScale(d.date)})
+        .y(function(d) { return yScale(d.count)})
+
+
+        var svg = d3.select("#selector").append("svg").attr("width", 1000).attr("height",200);
+        svg.append("path").datum(observationsPerDay).attr("class", "line").attr("d", line).attr("stroke", function(d,i){
+          return "#ccc4c4";
+        })
+
+
+                  
+      var xAxis = d3.axisBottom().scale(xScale).ticks(d3.timeMonday).tickFormat(d3.timeFormat("%a %d %b"));
+
+      svg
+        .append("g")
+        .attr("class", "xaxis")
+        .attr(
+          "transform",
+          "translate(0,"+100+")")         
+        .call(xAxis);
+
+    
+        svg.selectAll(".xAxis text")
+            .style("fill", "none")
+            .style("stroke", "none")
+
+        var brush = d3.brushX()
+        .extent([[0, 0], [1000, 100]])
+        .on("brush end", brushed);
+      var _this = this;
+
+       var weekBrush = d3.brushX()
+        .extent([[0, 0], [1000, 100]])
+        .on("end", dateBrush);
+        
+        svg.append("g")
+          .attr("class", "brush")
+          .call(brush)
+
+        var gBrush = svg.append("g")
+        .attr("class", "weekbrush")
+        .call(weekBrush)
+        .call(weekBrush.move, [930, 1000])
+        
+
+        d3.selectAll('.weekbrush>.handle').remove();
+        // removes crosshair cursor
+        d3.selectAll('.weekbrush>.overlay').remove();
+
+        
+
+        function brushed() {
+          if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
+         var k = d3.event.selection;
+      
+
+          var startDate = xScale.invert(k[0])
+          var endDate = xScale.invert(k[1])
+
+          _this.showDrawings(startDate, endDate);
+          
+         }
+
+        function getMonday(d) {
+            d = new Date(d);
+            var day = d.getDay(),
+                diff = d.getDate() - day + (day == 0 ? -6:1); // adjust when day is sunday
+            var monday = new Date(d.setDate(diff));
+            monday.setHours(0,0,0,0);
+            return monday
+
+          }
+
+         var hasBeenMoved = false;
+
+        function dateBrush() {
+          var k = d3.event.selection;
+
+          if (!d3.event.sourceEvent && !justInitialized) return;
+          if(oldSelection == k[0]) return;
+          if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
+          var monday = getMonday(new Date(xScale.invert(k[0])))
+          var sunday = new Date(new Date(monday).setDate(monday.getDate() + 6))
+          var mondayCords = xScale(monday)
+          var startDate = xScale.invert(k[0])
+          var endDate = xScale.invert(k[1])
+          _this.displayChosenWeek(monday,sunday);
+          justInitialized = false;
+          oldSelection = k[0]
+          d3.select(".weekbrush").transition().call(weekBrush.move, [mondayCords,mondayCords+70])
+         }
+         
+         
+          
+
+    }, setupxAxisForWeek(startDate, endDate){
+        var width = this.calendarWidth;
+
+        var xScale = d3.scaleTime()
+        .domain([
+          startDate, endDate])
+        .range([0, width-160]).nice();
+
+        var xAxis = d3.axisTop().scale(xScale).ticks(7).tickFormat(d3.timeFormat("%A %d %b"));
+
+       this.calendarChart
+        .append("g")
+        .attr("class", "weekAxis")
+        .attr(
+          "transform",
+          "translate(150,35)")
+        .call(xAxis).call(g => g.select(".domain").remove())
+
+
+
+    },
+    saveDrawing(){
+    const canvas = document.getElementById('drawing-area');
+    var dataURL = canvas.toDataURL("image/png");
+    var imgData = dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
+    this.imgDict[this.currentMonday] = imgData; 
+    localStorage.setItem("imgDict", JSON.stringify(this.imgDict));
+
+    var s = new XMLSerializer().serializeToString(document.getElementById("calendar"))
+    var b64 = window.btoa(s);
+    this.svgDict[this.currentMonday] = b64;
+    localStorage.setItem("svgDict", JSON.stringify(this.svgDict));
+    var numberInDict = this.findCurrentWeekNumber(this.currentMonday);
+    var catNumber = this.categoryNumberDict[this.color]
+    this.categoryOverviewDict[numberInDict][catNumber] = this.color;
+    localStorage.setItem("categoryOverviewDict", JSON.stringify(this.categoryOverviewDict));
+    this.drawCategoryGrid()
+    //this.deleteGraph();
+    //this.drawCalender();
+    //this.clearDrawing();
+    $("#drawing-area").remove();
+    this.createCanvasOverlay()
+
+
+    },clearDrawing(){
+      const canvas = document.getElementById('drawing-area');
+      if(canvas !== null) {
+              const context = canvas.getContext('2d');
+              context.clearRect(0,0,this.calendarWidth, this.calendarHeight);
+      }
+
+    },
+    showDrawings(startDate, endDate){
+        $(".images").remove();
+        var chosenDays = []
+        for(var monday in this.imgDict) {
+          var mday = new Date(new Date(monday))
+
+          if(mday >= startDate && mday <= endDate){
+              chosenDays.push(monday)
+          }
+        }
+
+        if(Object.entries(this.imgDict).length > 0) {
+          var imageList = []
+        var container = document.getElementById('chart')
+        
+        var zindex = 1;
+        var overlayLocation = 30
+        var width = 1000/Object.entries(this.imgDict).length
+        if(width > 500) {
+          width = 300;
+        }
+        for(var i = 0; i <chosenDays.length; i++) {
+            var monday = chosenDays[i]
+            var drawing = document.createElement("IMG")
+            drawing.style.zIndex=zindex;
+            drawing.style.position = "absolute";
+            drawing.style.left="60px";
+            drawing.style.top="0px";
+            drawing.className = "images"
+            drawing.src = "data:image/png;base64," + this.imgDict[monday];
+            container.appendChild(drawing);
+
+
+            var image = document.createElement("IMG")
+            image.src = "data:image/svg+xml;base64,"+this.svgDict[monday]
+            image.className = "smallMutipless images"
+            image.id = zindex.toString();
+            image.style.left = overlayLocation +"px"
+            image.style.width = width +"px";
+            
+            container.appendChild(image);
+            
+            var imageOverlay = document.createElement("IMG")
+            imageOverlay.style.zIndex=zindex;
+            imageOverlay.style.position = "absolute";
+            imageOverlay.style.left = overlayLocation+10+"px"
+            imageOverlay.style.top = "-6px";
+            imageOverlay.style.width = width+"px";
+            imageOverlay.src = "data:image/png;base64," + this.imgDict[monday];
+            imageOverlay.className = "smallMutipless images"
+            container.appendChild(imageOverlay);
+            zindex +=1;
+            overlayLocation+=width
+        }
+      } else {
+          $(".images").remove();
+      }
+        this.displayingDrawings = !this.displayingDrawings;
+    },
     drawCalender(){
-        this.addSVG();
         this.renderCalendarGrid();
-        this.data = this.getDataForWeek(this.curr);
+        //this.data = this.getDataForWeek(this.curr);
         this.drawGraphsForMonthlyData(this.data);
         this.setClickEventHandler(); 
+        this.drawCategoryGrid()
     },
     handleSelection(event){
       if(this.parentValue){
@@ -246,6 +619,29 @@ export default {
       
       
       return colorDict
+    }, getAmountOfWeeks(){
+      var data = this.cleanData
+      return d3.timeMonday.count(new Date(data[0]), new Date(data[data.length-1]))
+    },
+     categoryGridCells() {
+      var cellPositions = [];
+      var width = 1000;
+      var height = 30;
+      var numberOfWeeks = this.numberOfWeeks;
+      var numberOfCategories = this.items.length;
+
+      var categoryDict = this.categoryOverviewDict;
+
+    
+      for (var y = 0; y < numberOfCategories; y++) {
+        for (var x = 0; x < numberOfWeeks; x++) {
+            cellPositions.push([
+            x * (width/ numberOfWeeks),
+            y * (height / numberOfCategories), categoryDict[x][y],
+          ]);
+        }
+      }
+      return cellPositions;
     },
     publicGridCellPositions() {
       var cellPositions = [];
@@ -275,26 +671,24 @@ export default {
       dto.setDate(dto.getDate() - diff);
 
       return dto;
-    },
-    displayPreviousWeek() {
-      this.currentMonday = new Date(this.currentMonday.setDate(this.currentMonday.getDate() - 7));
+    },displayChosenWeek(startDate, endDate){
+
+      this.currentMonday = startDate
+      //Find startdato og slutdato
+      //Vis data i dette interval
       this.curr = this.getCurrentWeek(
         this.cleanData,
-        this.currentMonday
+        startDate
       );
-      this.data = this.getDataForWeek(this.curr);
+      this.data = this.getDataForWeek(this.curr, startDate, endDate);
       this.deleteGraph();
       this.drawCalender();
-    },
-    displayNextWeek() {
-      this.currentMonday = new Date(this.currentMonday.setDate(this.currentMonday.getDate() + 7));
-      this.curr = this.getCurrentWeek(
-        this.cleanData,
-        this.currentMonday
-      );
-      this.data = this.getDataForWeek(this.curr);
-      this.deleteGraph();
-      this.drawCalender();
+      this.setupxAxisForWeek(startDate, endDate)
+
+         $("#drawing-area").remove();
+       
+      this.createCanvasOverlay()
+
     },
     getCurrentWeek(data, monday) {
       var currentWeek = [];
@@ -303,33 +697,33 @@ export default {
       var currentMonday = monday;
       var currentSunday = -1;
 
+
       for (var i = 0; i < data.length; i++) {
         var timeStamp = data[i].split(";")[0];
         var dt = new Date(timeStamp);
         if (dt >= monday) {
-
+          
           var diff = dt.getDate() - 1
           dt.setDate
-           
+          
+
             var currentSunday = new Date(
-              new Date(currentMonday).setDate(currentMonday.getDate() + 6)
+              new Date(currentMonday).setDate(currentMonday.getDate() + 7)
             );
             stopFlag = true;
           }
-          if (currentSunday !== -1 && dt < currentSunday) {
+          if (currentSunday !== -1 && dt <= currentSunday) {
             currentWeek.push(dt);
           }
 
       }
       return currentWeek;
     },
-    getDataForWeek(curr) {
-      
+    getDataForWeek(curr, startDate,endDate) {
       var weekMatrix = [];
       for (var i = 0; i < 24; i++) {
         weekMatrix[i] = new Array(7).fill(0);
       }
-
       var dayOfWeek = 1;
       for (var i = 0; i < curr.length; i++) {
         var hours = curr[i].getHours();
@@ -342,10 +736,72 @@ export default {
       }
       return weekMatrix;
     },deleteGraph(){
-      
-      d3.select("svg").remove();
-      }, 
-      drawGraphsForMonthlyData(dataForWeek) {
+      d3.select("#calendar").remove();
+      this.clearDrawing();
+    }, drawCategoryGrid(){
+
+      $("#category").remove();
+        var cellPositions = this.categoryGridCells();
+        var numberOfWeeks = this.numberOfWeeks;
+        var cellWidth = 1000/numberOfWeeks;
+        var numberOfCategories = this.items.length;
+        var cellHeight = 60/numberOfCategories;      
+
+
+      var gridXTranslation = this.gridXTranslation;
+      var gridYTranslation = this.gridYTranslation;
+
+      var categoryOverview = d3
+        .select("#categoryOverview")
+        .append("svg")
+        .attr("class", "categories")
+        .attr("id", "category")
+        .attr("width", 1000+45)
+        .attr("height", 30)
+        .append("g");
+
+      categoryOverview
+        .selectAll("rect")
+        .data(cellPositions)
+        .enter()
+        .append("rect")
+        .attr("x", function(d) {
+          return d[0];
+        })
+        .attr("y", function(d) {
+          return d[1];
+        })
+        .attr("width", cellWidth)
+        .attr("height", cellHeight)
+        .style("stroke", function(d){
+          return "white";
+        })
+        .style("fill", function(d){
+          return d[2];
+        })
+        .attr("id", function(d){
+            return Math.floor(d[0]).toString()+Math.floor(d[1]).toString();
+        })
+        .attr(
+          "transform",
+          "translate(" + 40 + "," + 0 + ")"
+        )
+        .attr("class", "rect");
+    }, findCurrentWeekNumber(chosenDate){
+        
+          var monday = this.getMonday(chosenDate);
+          return d3.timeMonday.count(new Date(this.cleanData[0]), monday)
+
+    }, getMonday(d) {
+            d = new Date(d);
+            var day = d.getDay(),
+                diff = d.getDate() - day + (day == 0 ? -6:1); // adjust when day is sunday
+            var monday = new Date(d.setDate(diff));
+            monday.setHours(0,0,0,0);
+            return monday
+
+    },
+    drawGraphsForMonthlyData(dataForWeek) {
      
       var cellPositions = this.publicGridCellPositions();
       var gridXTranslation = this.gridXTranslation;
@@ -353,7 +809,6 @@ export default {
       var cellWidth = this.publicGridWidth / 7;
       var outerRadius = cellWidth / 3;
       var innerRadius = 0;
-      var pie = d3.pie();
       var calendarWidth = this.calendarWidth;
       var calendarHeight = this.calendarHeight;
       var color = d3.scaleOrdinal(d3.schemeCategory10);
@@ -365,9 +820,7 @@ export default {
       // We need to index and group the pie charts and slices generated so that they can be rendered in
       // the appropriate cells. To do that, we call D3's 'pie' function of each of the data elements.
       var indexedPieData = [];
-      for (var i = 0; i < dataForWeek.length; i++) {
-        var pieSlices = pie(dataForWeek[i]);
-      }
+
 
       this.chartsGroup.selectAll("circle").remove();
 
@@ -400,9 +853,52 @@ export default {
             ")"
           );
         });
-    }, addSVG(){
-
     },
+    createCanvasOverlay() {
+      console.log("hej")
+    var canvasContainer = document.getElementById('chart');
+    document.body.appendChild(canvasContainer);
+    var myCanvas = document.createElement('canvas');
+    myCanvas.id = "drawing-area";
+    myCanvas.style.width = this.calendarWidth;
+    myCanvas.style.height = this.calendarHeight;
+    myCanvas.style.zIndex="1080";
+    myCanvas.style.left="60px";
+    myCanvas.style.top="0px";
+    myCanvas.width=this.calendarWidth;
+    myCanvas.height=this.calendarHeight;
+    myCanvas.style.overflow = 'visible';
+    myCanvas.style.position = 'absolute';
+    canvasContainer.appendChild(myCanvas);
+ }, initialiseCategoryDict(){
+    var dict = {};
+    var items = this.items;
+
+    for(var i = 0; i < this.numberOfWeeks; i++){
+      var categoryObject = {}
+      var iterator = 0;
+
+      for(var key in items){
+          var cat = items[key];
+          if(cat.hex) {
+            categoryObject[iterator] = "white"
+          }
+          iterator++;
+      }
+      dict[i] = categoryObject;
+    }
+    return dict;
+ }, initialiseCategoryNumberDict(){
+    var dict = {};
+    for(var key in this.items){
+     if(this.items[key]){
+        var color = this.items[key].hex;
+        dict[color] = key; 
+     }
+
+    }
+    return dict;
+ },
     renderCalendarGrid() {
      
       var cellPositions = this.publicGridCellPositions();
@@ -412,7 +908,6 @@ export default {
       var cellHeight = this.publicGridHeight / 24;
       var outerRadius = cellWidth / 3;
       var innerRadius = 0;
-      var pie = d3.pie();
       var calendarWidth = this.calendarWidth;
       var calendarHeight = this.calendarHeight;
       var color = d3.scaleOrdinal(d3.schemeCategory10);
@@ -426,9 +921,11 @@ export default {
         .select("#chart")
         .append("svg")
         .attr("class", "calendar")
+        .attr("id", "calendar")
         .attr("width", calendarWidth + gridXTranslation)
         .attr("height", calendarHeight)
         .append("g");
+
 
 
       // Draw rectangles at the appropriate postions, starting from the top left corner. Since we want to leave some room for the heading and buttons,
@@ -483,44 +980,135 @@ export default {
         "Onsdag",
         "Torsdag",
         "Fredag",
-        "Lørdag",
-        "Søndag"
+        "Lordag",
+        "Sondag"
       ];
-
-      // This adds the day of the week headings on top of the grid
-      this.calendarChart
-        .selectAll("headers")
-        .data([0, 1, 2, 3, 4, 5, 6])
-        .enter()
-        .append("text")
-        .attr("class", "headers")
-        .attr("x", function(d) {
-          return cellPositions[d][0];
-        })
-        .attr("y", function(d) {
-          return cellPositions[d][1];
-        })
-        .attr("dx", gridXTranslation + 5) // right padding
-        .attr("dy", 30) // vertical alignment : middle
-        .text(function(d) {
-          return daysOfTheWeek[d];
-        });
-
       this.chartsGroup = this.calendarChart.append("svg:g");
 
-    }
-  }
-};
+    }, enableDrawing(color) {
+       
+      const canvas = document.getElementById('drawing-area');
+      const canvasContext = canvas.getContext('2d');
+      const state = {
+        mousedown: false
+      };
 
-Array.prototype.removeIf = function(callback) {
-  var i = 0;
-  while (i < this.length) {
-    if (callback(this[i])) {
-      this.splice(i, 1);
-    } else {
-      ++i;
+    // ===================
+    // == Configuration ==
+    // ===================
+    const lineWidth = 1;
+    const halfLineWidth = lineWidth / 2;
+    const fillStyle = color;
+    const strokeStyle = color;
+    const shadowColor = '#333';
+
+
+    // =====================
+    // == Event Listeners ==
+    // =====================
+    canvas.addEventListener('mousedown', handleWritingStart);
+    canvas.addEventListener('mousemove', handleWritingInProgress);
+    canvas.addEventListener('mouseup', handleDrawingEnd);
+    canvas.addEventListener('mouseout', handleDrawingEnd);
+
+    canvas.addEventListener('touchstart', handleWritingStart);
+    canvas.addEventListener('touchmove', handleWritingInProgress);
+    canvas.addEventListener('touchend', handleDrawingEnd);
+
+    //clearButton.addEventListener('click', handleClearButtonClick);
+
+
+    // ====================
+    // == Event Handlers ==
+    // ====================
+    function handleWritingStart(event) {
+
+      event.preventDefault();
+
+      const mousePos = getMosuePositionOnCanvas(event);
+      
+      canvasContext.beginPath();
+
+      canvasContext.moveTo(mousePos.x, mousePos.y);
+
+      canvasContext.lineWidth = lineWidth;
+      canvasContext.strokeStyle = strokeStyle;
+      canvasContext.shadowColor = null;
+
+      
+      canvasContext.fill();
+      
+      state.mousedown = true;
     }
-  }
-};
+
+    function handleWritingInProgress(event) {
+      event.preventDefault();
+      
+      if (state.mousedown) {
+        const mousePos = getMosuePositionOnCanvas(event);
+
+        canvasContext.lineTo(mousePos.x, mousePos.y);
+        canvasContext.stroke();
+
+      }
+    }
+
+    function handleDrawingEnd(event) {
+      event.preventDefault();
+
+      if (state.mousedown) {
+        canvasContext.shadowColor = shadowColor;
+        canvasContext.stroke();
+      }
+      
+      state.mousedown = false;
+    }
+
+    function handleClearButtonClick(event) {
+
+      event.preventDefault();
+      
+      clearCanvas();
+    }
+
+    // ======================
+    // == Helper Functions ==
+    // ======================
+    function getMosuePositionOnCanvas(event) {
+      const clientX = event.clientX || event.touches[0].clientX;
+      const clientY = event.clientY || event.touches[0].clientY;
+      const { offsetLeft, offsetTop } = event.target;
+      const canvasX = clientX - offsetLeft;
+      const canvasY = clientY-200;
+
+      return { x: canvasX, y: canvasY };
+    }
+
+
+        },
+      }
+    };
+
+    Array.prototype.removeIf = function(callback) {
+      var i = 0;
+      while (i < this.length) {
+        if (callback(this[i])) {
+          this.splice(i, 1);
+        } else {
+          ++i;
+        }
+      }
+    };
+
+    /* DRAWING STUFF GOES HERE */
+    $( document ).ready(function() {
+
+
+    function clearCanvas() {
+      canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    });
+
 </script>
 

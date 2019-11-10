@@ -51,7 +51,7 @@ import Modal from './Modal'
           modalOpen:false,
           categoryName: "",
           colorCounter: 0,
-          colors: [ "#fb8072", "#80b1d3", "#fdb462", "#b3de69", "#fccde5", "#d9d9d9", "#bc80bd","#ccebc5", "#ffed6f"]
+          colors: [ "#b8e186","#7fbc41","#4d9221","#276419", "#d9d9d9", "#bc80bd","#ccebc5", "#ffed6f"]
         };
       },
       
@@ -79,9 +79,10 @@ import Modal from './Modal'
         },
         
         categoryClicked: function(color){
+         this.color = color;
           if(this.chosenRect.length > 0) {
           this.modalOpen = !this.modalOpen;
-          this.color = color;
+          
           
 
           this.chosenRect.forEach(element => {
@@ -103,10 +104,12 @@ import Modal from './Modal'
           
          })
 
+
           this.$emit('update:catDict', this.catDict)
-          this.$emit('update:color', this.color)
+          
           this.$emit('input', !this.value)
           }
+          this.$emit('update:color', this.color)
         }
       }
     }
