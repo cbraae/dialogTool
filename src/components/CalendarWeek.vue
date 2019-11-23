@@ -110,6 +110,7 @@ export default {
       data: [],
       chosenRect: [],
       chosenDateTime: [],
+      colorDict:{},
       items: [ 
             { text: 'Venner', hex:"#8e0152"},
             { text: 'Familie', hex:"#c51b7d"},
@@ -210,13 +211,17 @@ export default {
         this.svgDict = JSON.parse(localStorage.getItem('svgDict'));
 
         };
-        if(localStorage.getItem("categoryOverviewDict")){
+        if(localStorage.getItem('colorDict')){
+            this.colorDict =JSON.parse(localStorage.getItem('colorDict'));
+        }
+        
+        /*if(localStorage.getItem("categoryOverviewDict")){
           this.categoryOverviewDict = JSON.parse(localStorage.getItem('categoryOverviewDict'));
         } else {
-          this.categoryOverviewDict = this.initialiseCategoryDict();
-        }
+          
+        }*/
 
-          this.categoryNumberDict = this.initialiseCategoryNumberDict();
+          
           this.createTimeline()
 
 
@@ -301,11 +306,19 @@ export default {
       var observationsPerDay = this.observationsPerDay;
       var lastClickedId = ""
       var clicked = false;
+
       
         function getMonday(d) {
+          
             d = new Date(d);
+            if(d.getDay() === 1){
+              d.setHours(0,0,0,0)
+              return d;
+            }
+
             var day = d.getDay(),
                 diff = d.getDate() - day + (day == 0 ? -6:1); // adjust when day is sunday
+
             var monday = new Date(d.setDate(diff));
             monday.setHours(0,0,0,0);
             return monday
@@ -317,15 +330,23 @@ export default {
             var day = d.getDay(),
             diff = d.getDate() - day
             var sunday = new Date(d.setDate(diff));
-            sunday.setHours(0,0,0,0);
+            sunday.setHours(23,59,59,59);
             return sunday
 
           }
+        
+        
+        var firstMonday = getMonday(d3.min(observationsPerDay, function(d){return d.date; }))
+        var lastSunday =  getSunday(d3.max(observationsPerDay, function(d){return d.date; }))
+
+
+
+        
 
       var xScale = d3.scaleTime()
         .domain([
-          getMonday(d3.min(observationsPerDay, function(d){return d.date; })),
-          d3.max(observationsPerDay, function(d){return d.date; })
+          firstMonday,
+         lastSunday
         ])
         .range([30, 1030])
         
@@ -337,25 +358,28 @@ export default {
         .y(function(d) { return yScale(d.count)})
 
 
-        var svg = d3.select("#selector").append("svg").attr("width", 1030).attr("height",200).attr("transform",
+        var svg = d3.select("#selector").append("svg").attr("width", 1200).attr("height",250).attr("transform",
           "translate(00,0)");;
         svg.append("path").datum(observationsPerDay).attr("class", "line").attr("d", line).attr("stroke", function(d,i){
           return "#ccc4c4";
         }).attr("transform",
           "translate(0,0)");
 
-
-                  
-      var xAxis = d3.axisBottom().scale(xScale).ticks(d3.timeMonday).tickFormat(d3.timeFormat("%a %d %b"));
-
+        if(firstMonday.getDate()+6 == lastSunday.getDate()){
+            var xAxis = d3.axisBottom().scale(xScale).ticks(7).tickFormat(d3.timeFormat("%a %d %b"));
+        } else {
+           var xAxis = d3.axisBottom().scale(xScale).ticks(d3.timeMonday).tickFormat(d3.timeFormat("%a %d %b"));
+        }
+      
       svg
         .append("g")
         .attr("class", "xaxis")
         .attr(
           "transform",
           "translate(0,"+100+")")         
-        .call(xAxis);
-
+        .call(xAxis)
+        .selectAll("text")
+        .attr('transform', 'translate(13,35)rotate(90)')
     
         svg.selectAll(".xAxis text")
             .style("fill", "none")
@@ -425,6 +449,7 @@ export default {
           function brushed() {
             if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
             var k = d3.event.selection;
+           
             
             var startDate = xScale.invert(k[0])
             var endDate = xScale.invert(k[1])
@@ -434,12 +459,12 @@ export default {
           }
 
           function brushend() {
+            
            
             var deleted = false;
             if(!d3.event.sourceEvent) return;
             if(d3.event.sourceEvent.shiftKey){
               var index = brushes.indexOf(this.id);
-              console.log(this.id)
               if (index > -1) {
                 brushes.splice(index, 1);
               }
@@ -513,6 +538,12 @@ export default {
 
         newBrush();
         drawBrushes();
+        var sundayCords = xScale(lastSunday)
+        var monday = new Date(new Date(lastSunday).setDate(lastSunday.getDate() - 6))
+        monday.setHours(0,0,0,0)
+        var mondayCords = xScale(monday)
+        var brushWidth = sundayCords-mondayCords
+
        var weekBrush = d3.brushX()
         .extent([[30, 0], [1030, 100]])
         .on("end", dateBrush);
@@ -521,33 +552,35 @@ export default {
         var gBrush = svg.append("g")
         .attr("class", "weekbrush")
         .call(weekBrush)
-        .call(weekBrush.move, [980, 1025])
-        
-
-        d3.selectAll('.weekbrush>.handle').remove();
-        // removes crosshair cursor
-        d3.selectAll('.weekbrush>.overlay').remove();
-
+        .call(weekBrush.move, [mondayCords, sundayCords])
 
 
          var hasBeenMoved = false;
 
         function dateBrush() {
-          var k = d3.event.selection;
+                  
+        d3.selectAll('.weekbrush>.handle').remove();
+        // removes crosshair cursor
+        d3.selectAll('.weekbrush>.overlay').remove();
+          if(!justInitialized) {
 
-          if (!d3.event.sourceEvent && !justInitialized) return;
+             if (!d3.event.sourceEvent) return;
+             if (!d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
+          
+          }
+          var k = d3.event.selection;
           if(oldSelection == k[0]) return;
-          if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
           var monday = getMonday(new Date(xScale.invert(k[0])))
           var sunday = new Date(new Date(monday).setDate(monday.getDate() + 6))
+          sunday.setHours(23,59,59)
           var mondayCords = xScale(monday)
           var sundayCords = xScale(sunday)
+         
+
           _this.displayChosenWeek(monday,sunday);
-          justInitialized = false;
           oldSelection = k[0]
           d3.select(".weekbrush").transition().call(weekBrush.move, [mondayCords,sundayCords])
          }
- 
 
     }, setupxAxisForWeek(startDate, endDate){
         var width = this.calendarWidth;
@@ -555,7 +588,7 @@ export default {
         var xScale = d3.scaleTime()
         .domain([
           startDate, endDate])
-        .range([0, width-160]).nice();
+        .range([0, width-20]);
 
         var xAxis = d3.axisTop().scale(xScale).ticks(7).tickFormat(d3.timeFormat("%A %d %b"));
 
@@ -567,34 +600,60 @@ export default {
           "translate(150,35)")
         .call(xAxis).call(g => g.select(".domain").remove())
 
-    },
+    }, 
     saveDrawing(){
         const canvas = document.getElementById('drawing-area');
         var dataURL = canvas.toDataURL("image/png");
         var imgData = dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
-        this.imgDict[this.currentMonday] = imgData; 
+        if(this.imgDict[this.currentMonday]){
+          this.imgDict[this.currentMonday].push(imgData);
+
+          for(var color in this.chosenColors){
+              
+              if(this.chosenColors[color].toString().includes("#")){
+                this.colorDict[imgData] = []
+                this.colorDict[imgData].push(this.chosenColors[color])
+                
+              }
+              
+          }
+          
+         
+        } else {
+            this.imgDict[this.currentMonday] = []
+            
+            
+            this.imgDict[this.currentMonday].push(imgData); 
+            
+            for(var color in this.chosenColors){
+               if(this.chosenColors[color].toString().includes("#")){
+                this.colorDict[imgData] = []
+                this.colorDict[imgData].push(this.chosenColors[color])
+              }
+          }
+         
+        }
+        
         localStorage.setItem("imgDict", JSON.stringify(this.imgDict));
 
         var s = new XMLSerializer().serializeToString(document.getElementById("calendar"))
         var b64 = window.btoa(s);
         this.svgDict[this.currentMonday] = b64;
+        localStorage.setItem("colorDict", JSON.stringify(this.colorDict));
         localStorage.setItem("svgDict", JSON.stringify(this.svgDict));
         var numberInDict = this.findCurrentWeekNumber(this.currentMonday);
-        var chosenColors = this.chosenColors;
-
-        for(var i = 0; i < chosenColors.length; i++){
+        //var chosenColors = this.chosenColors;
+        //this.initialiseCategoryDict();
+        /*for(var i = 0; i < chosenColors.length; i++){
             var color = chosenColors[i];
             var catNumber = this.categoryNumberDict[color]
             this.categoryOverviewDict[numberInDict][catNumber] = color;
-        }
+        }*/
         
         this.chosenColors = [];
 
-        localStorage.setItem("categoryOverviewDict", JSON.stringify(this.categoryOverviewDict));
+        
         this.drawCategoryGrid()
-        //this.deleteGraph();
-        //this.drawCalender();
-        //this.clearDrawing();
         $("#drawing-area").remove();
         this.createCanvasOverlay()
 
@@ -615,7 +674,8 @@ export default {
           var mday = new Date(new Date(monday))
 
           if(mday >= startDate && mday <= endDate){
-              chosenDays.push(monday)
+                  chosenDays.push(monday)
+              
           }
         }
 
@@ -626,46 +686,99 @@ export default {
         var zindex = 1;
         var overlayLocation = 30
         var width = 1000/Object.entries(this.imgDict).length
+        var ImagePlaceInDict = {}
         if(width > 500) {
           width = 300;
         }
         for(var i = 0; i <chosenDays.length; i++) {
             var monday = chosenDays[i]
-            var drawing = document.createElement("IMG")
-            drawing.style.zIndex=zindex;
-            drawing.style.position = "absolute";
-            drawing.style.left="60px";
-            drawing.style.top="0px";
-            drawing.className = "images "+ id.toString()
-            drawing.src = "data:image/png;base64," + this.imgDict[monday];
-            container.appendChild(drawing);
+            var chosenMonday = this.imgDict[monday]
+           for(var i =0; i< chosenMonday.length; i++ ){
+              var currentMonday = chosenMonday[i]
+              ImagePlaceInDict[currentMonday] = [monday,i]
+            
+              var drawing = document.createElement("IMG")
+              drawing.style.zIndex=zindex;
+              drawing.style.position = "absolute";
+              drawing.style.left="60px";
+              drawing.style.top="0px";
+              drawing.className = "images "+ id.toString() + " " + id.toString()+i.toString()  + " "  + currentMonday.toString()
+              drawing.src = "data:image/png;base64," + currentMonday;
+              container.appendChild(drawing);
 
 
-            var image = document.createElement("IMG")
-            image.src = "data:image/svg+xml;base64,"+this.svgDict[monday]
-            image.className = "smallMutipless images " + id.toString()
-            image.id = zindex.toString();
-            image.style.left = overlayLocation +"px"
-            image.style.width = width +"px";
-            
-            container.appendChild(image);
-            
-            var imageOverlay = document.createElement("IMG")
-            imageOverlay.style.zIndex=zindex;
-            imageOverlay.style.position = "absolute";
-            imageOverlay.style.left = overlayLocation+10+"px"
-            imageOverlay.style.top = "-6px";
-            imageOverlay.style.width = width+"px";
-            imageOverlay.src = "data:image/png;base64," + this.imgDict[monday];
-            imageOverlay.className = "smallMutipless images "+ id.toString()
-            container.appendChild(imageOverlay);
-            zindex +=1;
-            overlayLocation+=width
+              var image = document.createElement("IMG")
+              image.src = "data:image/svg+xml;base64,"+this.svgDict[monday]
+              image.className = "smallMutipless images " + id.toString() + " " + id.toString()+i.toString()  + " "  + currentMonday.toString()
+              image.id = zindex.toString();
+              image.style.left = overlayLocation +"px"
+              image.style.width = width +"px";
+              
+              container.appendChild(image);
+              
+              var imageOverlay = document.createElement("IMG")
+              imageOverlay.style.zIndex=zindex;
+              imageOverlay.style.position = "absolute";
+              imageOverlay.style.left = overlayLocation+10+"px"
+              imageOverlay.style.top = "-6px";
+              imageOverlay.style.width = width+"px";
+              imageOverlay.src = "data:image/png;base64," + currentMonday;
+              imageOverlay.className = "smallMutipless images "+ id.toString() + " " + id.toString()+i.toString()  + " "  + currentMonday.toString()
+              container.appendChild(imageOverlay);
+              zindex +=1;
+              overlayLocation+=width
+           }
         }
       } else {
           $(".images").remove();
       }
+         
+         var clickedItem = "old";
+         var brushId = "old"
+             $(".images")
+            .on("mousedown", function() {
+                if (event.button === 2) { // only enable for right click
+                  event.stopImmediatePropagation();
+                }
+            })
+            .on("contextmenu", function(){
+              event.preventDefault();
+              var classList = $(this)[0].classList;
+              clickedItem = classList[classList.length-1]
+              brushId = classList[classList.length-2]
 
+                 $(".custom-menu").finish().toggle(100)
+                  .css({
+                  top: event.pageY + "px",
+                  left: event.pageX + "px"
+              })
+                 $(".custom-menu li").click(function(){
+                    switch($(this).attr("data-action")) {                
+                // A case for each action. Your actions here
+                case "first":  
+                    $('.'+brushId.toString()).remove();
+                    removeImage(ImagePlaceInDict[clickedItem][0],ImagePlaceInDict[clickedItem][1])
+                  break;
+  
+            // Hide it AFTER the action was triggered
+            $(".custom-menu").hide(100);
+                    }
+                 });
+
+            });
+
+
+          var _this = this;
+
+          function removeImage(monday, arrayPlace){
+              _this.$delete(_this.colorDict, _this.imgDict[monday][arrayPlace]);
+              _this.$delete(_this.imgDict[monday], arrayPlace);
+              
+             localStorage.setItem("imgDict", JSON.stringify(_this.imgDict));
+             _this.initialiseCategoryDict();
+             _this.drawCategoryGrid();
+          }
+      
 
         this.displayingDrawings = !this.displayingDrawings;
     },
@@ -816,9 +929,10 @@ export default {
         startDate
       );
       this.data = this.getDataForWeek(this.curr, startDate, endDate);
-     
+      
       this.deleteGraph();
       this.drawCalender();
+      
       this.setupxAxisForWeek(startDate, endDate)
 
     $("#drawing-area").remove();
@@ -878,12 +992,13 @@ export default {
     }, drawCategoryGrid(){
 
       $("#category").remove();
+        this.categoryOverviewDict = this.initialiseCategoryDict();
+        this.categoryNumberDict = this.initialiseCategoryNumberDict();
         var cellPositions = this.categoryGridCells();
         var numberOfWeeks = this.numberOfWeeks;
         var cellWidth = 1000/numberOfWeeks;
         var numberOfCategories = this.items.length;
         var cellHeight = 60/numberOfCategories;      
-
 
       var gridXTranslation = this.gridXTranslation;
       var gridYTranslation = this.gridYTranslation;
@@ -1009,6 +1124,8 @@ export default {
  }, initialiseCategoryDict(){
     var dict = {};
     var items = this.items;
+    this.categoryNumberDict = this.initialiseCategoryNumberDict();
+
     for(var i = 0; i < this.numberOfWeeks; i++){
       var categoryObject = {}
       var iterator = 0;
@@ -1022,6 +1139,29 @@ export default {
       }
       dict[i] = categoryObject;
     }
+      for(var monday in this.imgDict){
+          var image = this.imgDict[monday]
+          for(var img in image){
+               var chosenColors = this.colorDict[image[img]];
+          var numberInDict = this.findCurrentWeekNumber(monday);
+
+          for(var color in chosenColors){
+            var color = chosenColors[color];
+
+            if(color.toString().includes("#")){
+              
+                var catNumber = this.categoryNumberDict[color]
+                dict[numberInDict][catNumber] = color;
+            }
+          }
+
+        }
+        
+      }
+      
+
+      //localStorage.setItem("categoryOverviewDict", JSON.stringify(dict));
+
     return dict;
  }, initialiseCategoryNumberDict(){
     var dict = {};

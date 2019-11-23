@@ -23,7 +23,7 @@
 
 <ul id="cat">
       <li v-for="item in items" :key="item.text">
-          <div class="swatch" :style="{ background: item.hex}" v-bind:value="value" v-on:click="categoryClicked(item)"></div> {{item.text}} <button v-on:click="deleteCategory(item)">Slet</button><br><br>
+          <div @contextmenu="deleteCategory(item)" class="swatch" :style="{ background: item.hex}" v-bind:value="value" v-on:click="categoryClicked(item)"></div> {{item.text}} <button v-on:click="deleteCategory(item)">Slet</button><br><br>
       </li>    
 </ul>
 <div>
