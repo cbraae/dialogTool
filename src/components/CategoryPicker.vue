@@ -23,7 +23,7 @@
 
 <ul id="cat">
       <li v-for="item in items" :key="item.text">
-          <div @contextmenu="deleteCategory(item)" class="swatch" :style="{ background: item.hex}" v-bind:value="value" v-on:click="categoryClicked(item)"></div> {{item.text}} <button v-on:click="deleteCategory(item)">Slet</button><br><br>
+          <div @contextmenu="openContextMenu(item)" class="swatch" :style="{ background: item.hex}" v-bind:value="value" v-on:click="categoryClicked(item)"></div> {{item.text}}<br><br>
       </li>    
 </ul>
 <div>
@@ -32,15 +32,20 @@
 
 
 </div>
-
+<ul class='custom-menu2'>
+      <li v-on:click="customMenuClick()">Slet</li>
+    </ul>
 </div>
 </template>
+
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 
 <script>
 
 import "bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Modal from './Modal'
+
     export default {
       name: "CategoryPicker",
       props: ["items", "chosenRect", "value", "catDict", "chosenDateTime","repModalOpen", "color"],
@@ -51,7 +56,8 @@ import Modal from './Modal'
           modalOpen:false,
           categoryName: "",
           colorCounter: 0,
-          colors: [ "#b8e186","#7fbc41","#4d9221","#276419", "#d9d9d9", "#bc80bd","#ccebc5", "#ffed6f"]
+          colors: [ "#b8e186","#7fbc41","#4d9221","#276419", "#d9d9d9", "#bc80bd","#ccebc5", "#ffed6f"],
+          LastClickedItem: ""
         };
       },
       
@@ -77,11 +83,7 @@ import Modal from './Modal'
           this.$emit('update:repModalOpen', !this.repModalOpen);
 
         },deleteCategory(item){
-          var _this = this;
-          var index = this.items.indexOf(item);
-          if (index > -1) {
-            _this.$delete(this.items, index);
-          }
+         
         },
         categoryClicked: function(item, event){
          this.color = item.hex;
@@ -112,8 +114,34 @@ import Modal from './Modal'
           this.$emit('input', !this.value)
           }
           this.$emit('update:color', this.color)
-        }
+        }, openContextMenu(item){
+          
+          this.LastClickedItem = item; 
+          event.preventDefault();  
+          
+            $(".custom-menu2").finish().toggle(100).
+              // In the right position (the mouse)
+              css({
+                  top:  $(event.target).position().top + "px",
+                  left:  $(event.target).position().left + "px"
+              })
+        },  customMenuClick(){
+              var _this = this;
+              var index = this.items.indexOf(this.LastClickedItem);
+              if (index > -1) {
+                _this.$delete(this.items, index);
+              }
+              $(".custom-menu2").finish().toggle(100)
+                 
+        },
       }
     }
+
+$(document).click(function(event) {
+  //if you click on anything except the modal itself or the "open modal" link, close the modal
+  if ($(".custom-menu2").is(":visible")) {
+    $(".custom-menu2").finish().toggle(100)
+  }
+});
 
 </script>

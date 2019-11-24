@@ -57,7 +57,7 @@ export default {
 /* CSS3 */
 
 /* The whole thing */
-.custom-menu {
+.custom-menu, .custom-menu2{
     display: none;
     z-index: 1000;
     position: absolute;
@@ -72,7 +72,7 @@ export default {
 }
 
 /* Each of the items in the list */
-.custom-menu li {
+.custom-menu li, .custom-menu2 li {
     padding: 8px 12px;
     cursor: pointer;
     list-style-type: none;

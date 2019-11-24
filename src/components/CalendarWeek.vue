@@ -449,11 +449,8 @@ export default {
           function brushed() {
             if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
             var k = d3.event.selection;
-           
-            
             var startDate = xScale.invert(k[0])
             var endDate = xScale.invert(k[1])
-
             _this.showDrawings(startDate, endDate, this.id);
                   
           }
@@ -667,6 +664,7 @@ export default {
 
     },
     showDrawings(startDate, endDate, id){
+
         //$(".images").remove();
         $("."+id).remove();
         var chosenDays = []
@@ -675,12 +673,11 @@ export default {
 
           if(mday >= startDate && mday <= endDate){
                   chosenDays.push(monday)
-              
           }
         }
 
         if(Object.entries(this.imgDict).length > 0) {
-          var imageList = []
+        var imageList = []
         var container = document.getElementById('chart')
         
         var zindex = 1;
@@ -690,26 +687,27 @@ export default {
         if(width > 500) {
           width = 300;
         }
-        for(var i = 0; i <chosenDays.length; i++) {
+        for(var i = 0; i < chosenDays.length; i++) {
             var monday = chosenDays[i]
             var chosenMonday = this.imgDict[monday]
-           for(var i =0; i< chosenMonday.length; i++ ){
-              var currentMonday = chosenMonday[i]
-              ImagePlaceInDict[currentMonday] = [monday,i]
+
+           for(var j =0; j< chosenMonday.length; j++ ){
+              var currentMonday = chosenMonday[j]
+              ImagePlaceInDict[currentMonday] = [monday,j]
             
               var drawing = document.createElement("IMG")
               drawing.style.zIndex=zindex;
               drawing.style.position = "absolute";
               drawing.style.left="60px";
               drawing.style.top="0px";
-              drawing.className = "images "+ id.toString() + " " + id.toString()+i.toString()  + " "  + currentMonday.toString()
+              drawing.className = "images "+ id.toString() + " " + id.toString()+j.toString()  + " "  + currentMonday.toString()
               drawing.src = "data:image/png;base64," + currentMonday;
               container.appendChild(drawing);
 
 
               var image = document.createElement("IMG")
               image.src = "data:image/svg+xml;base64,"+this.svgDict[monday]
-              image.className = "smallMutipless images " + id.toString() + " " + id.toString()+i.toString()  + " "  + currentMonday.toString()
+              image.className = "smallMutipless images " + id.toString() + " " + id.toString()+j.toString()  + " "  + currentMonday.toString()
               image.id = zindex.toString();
               image.style.left = overlayLocation +"px"
               image.style.width = width +"px";
@@ -723,7 +721,7 @@ export default {
               imageOverlay.style.top = "-6px";
               imageOverlay.style.width = width+"px";
               imageOverlay.src = "data:image/png;base64," + currentMonday;
-              imageOverlay.className = "smallMutipless images "+ id.toString() + " " + id.toString()+i.toString()  + " "  + currentMonday.toString()
+              imageOverlay.className = "smallMutipless images "+ id.toString() + " " + id.toString()+j.toString()  + " "  + currentMonday.toString()
               container.appendChild(imageOverlay);
               zindex +=1;
               overlayLocation+=width
