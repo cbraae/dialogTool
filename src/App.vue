@@ -2,7 +2,8 @@
 
   <div id="app">
      <nav class="navbar navbar-dark bg-dark" id="header">
-      <button @click="toggleView" class="btn btn-secondary headerbtn"> Skift visning </button>  
+      <!--<button @click="toggleView" class="btn btn-secondary headerbtn"> Skift visning </button>  -->
+      <FileUpload :loadData.sync="loadData"/>
       </nav>
 
      <CalendarWeek v-if="showCalendar" :trackingData=loadData />
@@ -14,6 +15,7 @@
 <script>
 import CalendarWeek from './components/CalendarWeek'
 import CalendarMonth from './components/CalendarMonth'
+import FileUpload from './components/FileUpload'
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import * as d3 from 'd3'
@@ -25,7 +27,8 @@ export default {
   name: 'app',
   components: {
     CalendarMonth, 
-    CalendarWeek
+    CalendarWeek,
+    FileUpload
   }, data(){
     return {
       loadData: {},
@@ -33,7 +36,15 @@ export default {
     }; 
   }, mounted() {
     this.fetchData(); 
-  },methods: {
+  },
+  watch: {
+    loadData: {
+          handler: function() {
+            console.log("data changes")
+          }
+    }
+  },
+  methods: {
    
     async fetchData() {
        let data = await d3.csv("/data/ptsd_2w.csv");
@@ -43,12 +54,14 @@ export default {
         cleanedData.removeIf(function(item, idx) {
           return item == ";";
         });
-        this.loadData = cleanedData;
-    }, toggleView() { 
+        this.loadData = cleanedData; 
+    }, 
+    toggleView() { 
         this.showCalendar = !this.showCalendar;
     }
   }
 }
+
 
 </script>
 
@@ -125,7 +138,7 @@ body{
 
 .buttonGroup {
   float:right;
-    margin-top:-180px;
+    margin-top:-250px;;
 }
 
 .modal{
@@ -173,9 +186,12 @@ body{
   margin-left:10px;
 }
 
-.btn-secondary, .btn-primary {
+.btn-secondary, .btn-primary, .btn-default  {
   font-size:12px;
   margin:2px;
+}
+.btn-default {
+  border: 1px solid grey
 }
 
 #forward, .headerbtn {

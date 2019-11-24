@@ -11,19 +11,19 @@
               id="save"
               name="save"
               v-on:click="saveDrawing"
-              class="btn btn-secondary drawingbuttons"
+              class="btn btn-default drawingbuttons"
             >GEM</button>
             <button
               id="clear"
               name="clear"
               v-on:click="clearDrawing"
-              class="btn btn-secondary drawingbuttons"
+              class="btn btn-default drawingbuttons"
             >RYD</button>
              <button
               id="undo"
               name="undo"
               v-on:click="undo"
-              class="btn btn-secondary drawingbuttons"
+              class="btn btn-default drawingbuttons"
             >Visk Ud</button>         
         </div>
       </div>
@@ -301,6 +301,10 @@ export default {
       return datesInPeriod;
     },
     createTimeline(){
+
+      //Remove old stuff:
+      d3.select("#selector svg").remove();
+
       var justInitialized = true;
       var oldSelection = "";
       var observationsPerDay = this.observationsPerDay;
@@ -604,13 +608,11 @@ export default {
         var imgData = dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
         if(this.imgDict[this.currentMonday]){
           this.imgDict[this.currentMonday].push(imgData);
-
+          this.colorDict[imgData] = []
           for(var color in this.chosenColors){
               
               if(this.chosenColors[color].toString().includes("#")){
-                this.colorDict[imgData] = []
                 this.colorDict[imgData].push(this.chosenColors[color])
-                
               }
               
           }
