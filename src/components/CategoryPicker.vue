@@ -21,11 +21,16 @@
     </div>
   </div>
 
-<ul id="cat">
-      <li v-for="item in items" :key="item.text">
-          <div @contextmenu="openContextMenu(item)" class="swatch" :style="{ background: item.hex}" v-bind:value="value" v-on:click="categoryClicked(item)"></div> {{item.text}}<br><br>
-      </li>    
-</ul>
+<div id="cat">
+
+  <ul :style="gridStyle" class="card-list">
+          <li v-for="(item) in items" :key="item.text" class="card-item">
+          
+
+            <div @contextmenu="openContextMenu(item)" class="swatch" :style="{ background: item.hex}" v-bind:value="value" v-on:click="categoryClicked(item)"></div> {{item.text}}<br><br>
+        </li>
+  </ul>
+</div>
 <div>
   <input v-model="categoryName" id="addCategory" placeholder="Tilføj Kategori"/> 
   <button type="button" class="btn btn-secondary" id="SaveBTN" @click="saveCat">Tilføj</button>
@@ -57,7 +62,8 @@ import Modal from './Modal'
           categoryName: "",
           colorCounter: 0,
           colors: [ "#b8e186","#7fbc41","#4d9221","#276419", "#d9d9d9", "#bc80bd","#ccebc5", "#ffed6f"],
-          LastClickedItem: ""
+          LastClickedItem: "",
+          numberOfColumns: 4
         };
       },
       
@@ -134,7 +140,14 @@ import Modal from './Modal'
               $(".custom-menu2").finish().toggle(100)
                  
         },
-      }
+      },
+      computed: {
+      gridStyle() {
+        return {
+          gridTemplateColumns: `repeat(${this.numberOfColumns}, minmax(100px, 1fr))`
+        }
+    },
+    }
     }
 
 $(document).click(function(event) {

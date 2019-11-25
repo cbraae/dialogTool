@@ -26,20 +26,21 @@
               class="btn btn-default drawingbuttons"
             >Visk Ud</button>         
         </div>
+        <div  id="categorySection" class="col-4">
+        <h4 id="categoryHeader"> KATEGORIER </h4>
+        <CategoryPicker :chosenRect="chosenRect" :chosenDateTime="chosenDateTime" v-model="parentValue" :color.sync="color" :items.sync="items" :repModalOpen.sync="repModalOpen" :catDict.sync="catDict"></CategoryPicker>
+      </div>
       </div>
     
     <!-- MidterRække: Kategori-overview -->
     <div class="row">
       <div id="categoryOverview" class="col-8"> </div>
     </div>
-
+    <div class="rows" id="rows"/>
     <!-- Nederste: Kategori-overview -->
     <!-- Går i stykker hvis man pakker det ind i en row  -->
       <div id="chart" class="col-8"></div>
-      <div  id="categorySection" class="col-4">
-        <h4 id="categoryHeader"> KATEGORIER </h4>
-        <CategoryPicker :chosenRect="chosenRect" :chosenDateTime="chosenDateTime" v-model="parentValue" :color.sync="color" :items.sync="items" :repModalOpen.sync="repModalOpen" :catDict.sync="catDict"></CategoryPicker>
-      </div>
+      
      <ul class='custom-menu'>
       <li data-action="first">Slet</li>
     </ul>
@@ -451,11 +452,12 @@ export default {
           });
 
           function brushed() {
+            /*
             if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
             var k = d3.event.selection;
             var startDate = xScale.invert(k[0])
             var endDate = xScale.invert(k[1])
-            _this.showDrawings(startDate, endDate, this.id);
+            _this.showDrawings(startDate, endDate, this.id);*/
                   
           }
 
@@ -669,6 +671,7 @@ export default {
 
         //$(".images").remove();
         $("."+id).remove();
+        
         var chosenDays = []
         for(var monday in this.imgDict) {
           var mday = new Date(new Date(monday))
@@ -681,14 +684,20 @@ export default {
         if(Object.entries(this.imgDict).length > 0) {
         var imageList = []
         var container = document.getElementById('chart')
-        
+        var smallMultiplesContainer = document.getElementById('categorySection')
+
+
         var zindex = 1;
         var overlayLocation = 30
-        var width = 1000/Object.entries(this.imgDict).length
+        var width = 200;
         var ImagePlaceInDict = {}
-        if(width > 500) {
-          width = 300;
-        }
+
+
+        var rows = document.getElementById("rows")
+        rows.style.width = "400px";
+
+        var totalCounter = 0;
+
         for(var i = 0; i < chosenDays.length; i++) {
             var monday = chosenDays[i]
             var chosenMonday = this.imgDict[monday]
@@ -706,29 +715,45 @@ export default {
               drawing.src = "data:image/png;base64," + currentMonday;
               container.appendChild(drawing);
 
+              if(totalCounter % 1==0 ){
+                if(column){
+                    rows.appendChild(column)
+                }
+                
+                var column = document.createElement('div');
+                column.className="column" 
+              }
+
 
               var image = document.createElement("IMG")
               image.src = "data:image/svg+xml;base64,"+this.svgDict[monday]
-              image.className = "smallMutipless images " + id.toString() + " " + id.toString()+j.toString()  + " "  + currentMonday.toString()
+              image.className = "images " + id.toString() + " " + id.toString()+j.toString()  + " "  + currentMonday.toString()
               image.id = zindex.toString();
-              image.style.left = overlayLocation +"px"
+              //image.style.left = overlayLocation +"px"
               image.style.width = width +"px";
+              image.style.height = 100 +"px";
+              smallMultiplesContainer.appendChild(image);
+              column.style.width = 2*width+"px"
+              column.appendChild(image);
               
-              container.appendChild(image);
               
               var imageOverlay = document.createElement("IMG")
               imageOverlay.style.zIndex=zindex;
               imageOverlay.style.position = "absolute";
-              imageOverlay.style.left = overlayLocation+10+"px"
-              imageOverlay.style.top = "-6px";
               imageOverlay.style.width = width+"px";
+              imageOverlay.style.height = "100px";
               imageOverlay.src = "data:image/png;base64," + currentMonday;
               imageOverlay.className = "smallMutipless images "+ id.toString() + " " + id.toString()+j.toString()  + " "  + currentMonday.toString()
-              container.appendChild(imageOverlay);
               zindex +=1;
-              overlayLocation+=width
+              overlayLocation+=width;
+              column.appendChild(imageOverlay);
+              
+              totalCounter+=1;
            }
         }
+        rows.appendChild(column)
+        smallMultiplesContainer.appendChild(rows)
+        
       } else {
           $(".images").remove();
       }

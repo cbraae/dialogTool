@@ -107,11 +107,12 @@ export default {
     top: 0px;
 }
 
+/*
 .smallMutipless{
   margin-top:548px;
   position: absolute;
 
-}
+}*/
 
 
 #header {
@@ -212,6 +213,8 @@ body{
 #categorySection{
   float:right;
   width:400px;
+  margin-top:-230px;
+  margin-right:55px;
 }
 
 .drawingbuttons{
@@ -248,10 +251,11 @@ li {list-style-type: none;}
 
 
 .swatch{
+  border-radius: 5px;
   height:20px;
   width: 20px;
   position:absolute;
-
+  cursor: pointer;
 }
 
 .clicked {
@@ -291,6 +295,56 @@ li {list-style-type: none;}
 
 .brush {
   min-width: 100px;
+}
+
+ul {
+  list-style-type: none;
+}
+
+.card-list {
+  display: grid;
+  grid-gap: 1em;
+}
+
+.card-item {
+  border-radius: 5px;
+  margin-left:-20px;
+  width:85px;
+  height:22px;
+  border: 1px solid grey
+}
+
+
+/* small multiples*/
+
+.rows {
+ margin-top:112px;
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0 4px;
+  flex-direction: row;
+  float:right;
+  margin-right:-10px;
+}
+
+/* Create two equal columns that sits next to each other */
+.column {
+  flex: 50%;
+  max-width:50%;
+  /*padding: 0 4px;*/
+}
+
+.column img {
+  margin-top: 8px;
+  vertical-align: middle;
+  
+}
+
+.smallMutipless{
+  position: absolute;
+  margin-top:-100px !important;
+  margin-left:-99px;
+
 }
 
 </style>
