@@ -40,14 +40,14 @@ export default {
   watch: {
     loadData: {
           handler: function() {
-            console.log("data changes")
+
           }
     }
   },
   methods: {
    
     async fetchData() {
-       let data = await d3.csv("/data/ptsd_2w.csv");
+       let data = await d3.csv("/data/ptsd_filtered.csv");
        var cleanedData = data.map(
           item => item[data.columns[0]].split("Z")[0]
         );
@@ -68,6 +68,11 @@ export default {
 <style>
 
 /* CSS3 */
+
+
+#header {
+  height: 30px;
+}
 
 /* The whole thing */
 .custom-menu, .custom-menu2{
@@ -114,6 +119,9 @@ export default {
 
 }*/
 
+.drawingCursor {
+  cursor: crosshair;
+}
 
 #header {
   position: relative;
@@ -125,7 +133,8 @@ export default {
 
 body{
     margin:0;
-    overflow-y:scroll;
+    overflow-y:hidden;
+    overflow-x:hidden;
 }
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
@@ -135,11 +144,19 @@ body{
   color: #2c3e50;
 }
 
+.selected {
+  background-color: #1471ed66 !important;
+}
+
+.selectedCategory {
+  border: 1.5px dotted;
+}
 
 
 .buttonGroup {
   float:right;
-    margin-top:-250px;;
+  margin-top:-250px;
+  display:none;
 }
 
 .modal{
@@ -158,9 +175,13 @@ body{
 }
 
 #addCategory {
+  margin-top: 3px;
   float:left;
   width:150px;
-  height:36px;
+  height:30px;
+  border: 1px solid lightgrey;
+  color: lightgrey;
+  border-radius: 5px; 
 }
 #SaveBTN {
   float:left;
@@ -168,6 +189,7 @@ body{
 
 ::placeholder{
   font-size:12px;
+  color: lightgray;
 }
 
 .modal-sm {
@@ -177,10 +199,10 @@ body{
 .selector {
   width:100px;
 }
-
+/*
 #chart, .headers, #month {
   color: #ccc4c4; 
-}
+}*/
 
 .propleft {
   float:left;
@@ -191,8 +213,15 @@ body{
   font-size:12px;
   margin:2px;
 }
+p {
+  font-size: 12px;
+  text-align:left;
+  float:left;
+  color: lightgrey;
+}
+
 .btn-default {
-  border: 1px solid grey
+  border: 1px solid lightgray;
 }
 
 #forward, .headerbtn {
@@ -204,16 +233,19 @@ body{
   margin-left:55px;
 }
 
+
 #chart {
   position:relative;
-  width:1000px;
-  left: 0px;
+  width:1080px;
+  height:520px;
+  left: 20px;
+
 }
 
 #categorySection{
   float:right;
   width:400px;
-  margin-top:-230px;
+  margin-top:-277px;
   margin-right:55px;
 }
 
@@ -225,33 +257,48 @@ body{
   margin-left:50px;
 }
 
-.weekAxis .tick line, .yaxis .tick line {
+.weekAxis .tick line, .yaxis .tick line, .y .tick line {
         display:none;
     }
 
 .weekAxis line {
   display: none;
 }
+.xAxis text{
+  fill:#e6e9ed !important
+}  
+
+.xAxis path {
+        stroke: e6e9ed !important;
+}
+
+.selectedCircles {
+  fill: black !important;
+}
 
 #categoryHeader {
   float:left;
   margin-top:30px;
-  font-family: "Lucida Sans Unicode";
-  color:#746d6d;
+  /*font-family: "Lucida Sans Unicode";*/
+  /*color:#746d6d;*/
+  font-weight:100;
+  font-size:18px;
 }
 
 #cat {
   width:50%;
   margin-top:70px;
-  margin-left:-40px;
+  margin-left:-20px;
 }
 
 li {list-style-type: none;}
 
-
+.fileupload {
+  width:55px;
+}
 
 .swatch{
-  border-radius: 5px;
+  border-radius: 50%;
   height:20px;
   width: 20px;
   position:absolute;
@@ -268,8 +315,19 @@ li {list-style-type: none;}
 }
 
 .weekbrush .selection{
-  fill: crimson !important;
+  fill: lightgrey !important;
+  stroke: lightgray !important;
 }
+
+.brush .selection {
+  fill: none !important; 
+  stroke: black !important; 
+}
+
+.showingDrawings {
+  border: 1px solid black; 
+}
+
 .selected {
   fill: #007bff !important;
   fill-opacity: 0.1;
@@ -289,8 +347,8 @@ li {list-style-type: none;}
 }
 
 #categoryOverview{
-    margin-top:-70px;
-    margin-left:12px;
+    margin-top:-60px;
+    margin-left:28px;
 }
 
 .brush {
@@ -310,21 +368,21 @@ ul {
   border-radius: 5px;
   margin-left:-20px;
   width:85px;
-  height:22px;
-  border: 1px solid grey
+  height:24px;
+  /*border: 1px solid grey*/
 }
 
 
 /* small multiples*/
 
 .rows {
- margin-top:112px;
+ margin-top:92px;
   display: flex;
   flex-wrap: wrap;
   padding: 0 4px;
   flex-direction: row;
   float:right;
-  margin-right:-10px;
+  margin-right:-40px;
 }
 
 /* Create two equal columns that sits next to each other */

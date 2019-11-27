@@ -24,16 +24,16 @@
 <div id="cat">
 
   <ul :style="gridStyle" class="card-list">
-          <li v-for="(item) in items" :key="item.text" class="card-item">
+          <li v-for="(item) in items" :key="item.text" class="card-item" v-bind:class="{ selectedCategory: item.isSelected }">
           
-
-            <div @contextmenu="openContextMenu(item)" class="swatch" :style="{ background: item.hex}" v-bind:value="value" v-on:click="categoryClicked(item)"></div> {{item.text}}<br><br>
+            
+            <div @contextmenu="openContextMenu(item)" class="swatch" :style="{ background: item.hex}" v-bind:value="value"  v-on:click="categoryClicked(item, this)"></div> {{item.text}}<br><br>
         </li>
   </ul>
 </div>
 <div>
-  <input v-model="categoryName" id="addCategory" placeholder="Tilføj Kategori"/> 
-  <button type="button" class="btn btn-secondary" id="SaveBTN" @click="saveCat">Tilføj</button>
+  <input v-model="categoryName" id="addCategory" placeholder=" Tilføj Kategori"/> 
+  <button type="button" class="btn btn-default" id="SaveBTN" @click="saveCat">Tilføj</button>
 
 
 </div>
@@ -63,7 +63,8 @@ import Modal from './Modal'
           colorCounter: 0,
           colors: [ "#b8e186","#7fbc41","#4d9221","#276419", "#d9d9d9", "#bc80bd","#ccebc5", "#ffed6f"],
           LastClickedItem: "",
-          numberOfColumns: 4
+          numberOfColumns: 4,
+          isSelected: false
         };
       },
       
@@ -72,6 +73,7 @@ import Modal from './Modal'
           this.items.push({ text: this.categoryName, hex: this.colors[this.colorCounter]});
           this.categoryName = "";
           this.colorCounter++;
+          
         },
         getRandomColor: function() {
           var letters = '0123456789ABCDEF';
@@ -88,12 +90,16 @@ import Modal from './Modal'
           this.modalOpen = false;
           this.$emit('update:repModalOpen', !this.repModalOpen);
 
-        },deleteCategory(item){
-         
         },
-        categoryClicked: function(item, event){
+        categoryClicked: function(item, _this){
          this.color = item.hex;
-          if(this.chosenRect.length > 0) {
+
+        //skal toggles i stedet
+         this.$set(item, 2, true)
+         
+
+          //$(item).cl
+        /*if(this.chosenRect.length > 0) {
           this.modalOpen = !this.modalOpen;
         
           this.chosenRect.forEach(element => {
@@ -114,11 +120,15 @@ import Modal from './Modal'
           
          })
 
+   
 
           this.$emit('update:catDict', this.catDict)
           
           this.$emit('input', !this.value)
-          }
+          }*/
+
+
+          this.$emit('update:selected', this.isSelected)
           this.$emit('update:color', this.color)
         }, openContextMenu(item){
           
@@ -153,7 +163,7 @@ import Modal from './Modal'
 $(document).click(function(event) {
   //if you click on anything except the modal itself or the "open modal" link, close the modal
   if ($(".custom-menu2").is(":visible")) {
-    $(".custom-menu2").finish().toggle(100)
+    $(".custom-menu2").hide();
   }
 });
 

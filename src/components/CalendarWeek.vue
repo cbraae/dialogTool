@@ -6,7 +6,20 @@
     <div id="row">
      
       <div id="selector" class="col-8">  </div> 
-        <div class="col-4 align-self-end buttonGroup">
+        
+        <div  id="categorySection" class="col-4">
+        <p id="categoryHeader"> Kategorier</p>
+        <p>
+         Tilføj en tegning ved at: <br> 1. Trykke på en kategori <br> 2. Tegn på kalenderen ved at holde venstre musetast + shift nede.
+        </p>
+        <CategoryPicker :chosenRect="chosenRect" :chosenDateTime="chosenDateTime" v-model="parentValue" :color.sync="color" :items.sync="items" :repModalOpen.sync="repModalOpen" :catDict.sync="catDict"></CategoryPicker>
+      </div>
+      </div>
+    
+    <!-- MidterRække: Kategori-overview -->
+    <div class="row">
+      <div id="categoryOverview" class="col-8"> </div>
+      <div class="col-4 align-self-end buttonGroup">
           <button
               id="save"
               name="save"
@@ -26,20 +39,11 @@
               class="btn btn-default drawingbuttons"
             >Visk Ud</button>         
         </div>
-        <div  id="categorySection" class="col-4">
-        <h4 id="categoryHeader"> KATEGORIER </h4>
-        <CategoryPicker :chosenRect="chosenRect" :chosenDateTime="chosenDateTime" v-model="parentValue" :color.sync="color" :items.sync="items" :repModalOpen.sync="repModalOpen" :catDict.sync="catDict"></CategoryPicker>
-      </div>
-      </div>
-    
-    <!-- MidterRække: Kategori-overview -->
-    <div class="row">
-      <div id="categoryOverview" class="col-8"> </div>
     </div>
     <div class="rows" id="rows"/>
     <!-- Nederste: Kategori-overview -->
     <!-- Går i stykker hvis man pakker det ind i en row  -->
-      <div id="chart" class="col-8"></div>
+      <div id="chart"></div>
       
      <ul class='custom-menu'>
       <li data-action="first">Slet</li>
@@ -76,15 +80,16 @@ export default {
       catDict: {},
       color:"",
       displayingDrawings:false,
-      calendarWidth: 1000,
-      calendarHeight: 500,
-      gridXTranslation: 80,
+      calendarWidth: 1100,
+      calendarHeight: 450,
+      gridXTranslation: 55,
       gridYTranslation: 40,
       currentMonth: new Date().getMonth(),
       currentMonday: new Date(),
       currentSunday: new Date(),
       showDrawingsTitle: "Vis tidligere kommentarer",
       numberOfWeeks: 0,
+      gridColor: "lightgrey",
       monthNames: [
         "January",
         "February",
@@ -99,8 +104,8 @@ export default {
         "November",
         "December"
       ],
-      publicGridWidth: 980,
-      publicGridHeight: 460,
+      publicGridWidth: 1010,
+      publicGridHeight: 400,
       publicCellWidth: this.publicGridWidth / 7,
       publicCellHeight: this.publicGridHeight / 8,
       cellPositions: [],
@@ -113,9 +118,9 @@ export default {
       chosenDateTime: [],
       colorDict:{},
       items: [ 
-            { text: 'Venner', hex:"#8e0152"},
-            { text: 'Familie', hex:"#c51b7d"},
-            { text: 'Arbejde', hex:"#de77ae"}
+            { text: 'Venner', hex:"#8e0152", isSelected: false},
+            { text: 'Familie', hex:"#c51b7d", isSelected: false},
+            { text: 'Arbejde', hex:"#de77ae", isSelected: false}
         ],
       parentValue: false,
       dict: [],
@@ -244,61 +249,88 @@ export default {
     undo(){
 
       this.enableDrawing("rgba(255,255,255,1)", true)
+    }, getTally(){
+       var tally = [];
+      var firstTime = true
+      var lastDate = new Date( new Date(this.cleanData[0]))
+      //lastDate.setHours(0,0,0,0)  
+      var counter = 0
+      var cleanData = this.cleanData;
+      var counter = 0
+
+    cleanData.forEach(function(line) {
+              var date = new Date( new Date(line))
+              if(lastDate.getHours()===date.getHours() ){
+                counter++;
+              } else { 
+                tally.push({date:date,count:counter})
+                counter = 0;
+              }
+              lastDate = date;
+      });
+      return tally;
     },
     getTotalForEachDay(){
 
       Date.prototype.addDays = function(days) {
           var date = new Date(this.valueOf());
           date.setDate(date.getDate() + days);
-          date.setHours(0,0,0,0)
+          //date.setHours(0,0,0,0)
           return date;
       }
 
       function getDates(startDate, stopDate) {
-          var sunday = stopDate.setDate(stopDate.getDate() + (1 + 6 - stopDate.getDay()) % 6)
-
+          var sunday = new Date(stopDate.setDate(stopDate.getDate() + (1 + 6 - stopDate.getDay()) % 6))
+          
           var dateArray = new Array();
           var currentDate = startDate;
+          currentDate.setHours(0,0,0,0)
+
           while (currentDate <= sunday) {
-              dateArray.push({date: new Date (currentDate), count: 0});
+              for(var i = 0; i < 24; i++){
+              var currentDay = new Date (currentDate)
+              currentDay.setHours(i)
+                dateArray.push({date: currentDay, count: 0});
+              }
+              
               currentDate = currentDate.addDays(1);
-              currentDate.setHours(0,0,0,0)
+              //currentDate.setHours(0,0,0,0)
           }
           return dateArray;
       }
 
       var datesInPeriod= getDates(new Date(new Date(this.cleanData[0])) ,new Date( new Date(this.cleanData[this.cleanData.length-1])))
-
+   
 
       var tally = [];
       var firstTime = true
       var lastDate = new Date( new Date(this.cleanData[0]))
-      lastDate.setHours(0,0,0,0)  
-      var dateCounter = 0
+      //lastDate.setHours(0,0,0,0)  
+      var counter = 0
       var cleanData = this.cleanData;
       var counter = 0
 
     cleanData.forEach(function(line) {
               var date = new Date( new Date(line))
-              date.setHours(0,0,0,0)
-              if(lastDate.getTime()===date.getTime() ){
-                dateCounter++;
+              if(lastDate.getHours()===date.getHours() ){
+                counter++;
               } else { 
-                tally.push({date:date,count:dateCounter})
-                dateCounter = 0;
+                tally.push({date:date,count:counter})
+                counter = 0;
               }
               lastDate = date;
-
       });
-
+      var lastDate = new Date( new Date(this.cleanData[0]))
     
         for(var i=0; i < tally.length; i++){
              for(var j = 0; j < datesInPeriod.length; j++ ) {
-              if(tally[i].date.getTime() == datesInPeriod[j].date.getTime()){
-                datesInPeriod[j].count = tally[i].count
-              } 
-          }
+
+                  if(tally[i].date.getDate() == datesInPeriod[j].date.getDate() && tally[i].date.getHours() == datesInPeriod[j].date.getHours() && tally[i].date.getMonth() == datesInPeriod[j].date.getMonth()){
+                    datesInPeriod[j].count = tally[i].count
+                  }
+             }
         }
+      
       return datesInPeriod;
     },
     createTimeline(){
@@ -311,7 +343,10 @@ export default {
       var observationsPerDay = this.observationsPerDay;
       var lastClickedId = ""
       var clicked = false;
+      var gridColor = this.gridColor;
 
+      var data = this.getTally();
+      
       
         function getMonday(d) {
           
@@ -331,11 +366,13 @@ export default {
 
           
         function getSunday(d) {
+            
             d = new Date(d);
             var day = d.getDay(),
             diff = d.getDate() - day
             var sunday = new Date(d.setDate(diff));
             sunday.setHours(23,59,59,59);
+            
             return sunday
 
           }
@@ -344,52 +381,86 @@ export default {
         var firstMonday = getMonday(d3.min(observationsPerDay, function(d){return d.date; }))
         var lastSunday =  getSunday(d3.max(observationsPerDay, function(d){return d.date; }))
 
-
-
-        
-
       var xScale = d3.scaleTime()
         .domain([
           firstMonday,
          lastSunday
         ])
-        .range([30, 1030])
-        
-       var yScale = d3.scaleLinear()
-        .domain([0, d3.max(observationsPerDay, function(d){return d.count; })]).range([100,0])
+        .range([50, 1050])
+
+        var y = d3
+        .scaleLinear()
+        .domain([0, 24])
+        .range([100,0])
+
 
         var line = d3.line()
-        .x(function(d) { return xScale(d.date)})
+        .x(function(d) { return xScale(d.date.setHours(0,0,0,0))})
         .y(function(d) { return yScale(d.count)})
 
-
         var svg = d3.select("#selector").append("svg").attr("width", 1200).attr("height",250).attr("transform",
-          "translate(00,0)");;
-        svg.append("path").datum(observationsPerDay).attr("class", "line").attr("d", line).attr("stroke", function(d,i){
-          return "#ccc4c4";
-        }).attr("transform",
-          "translate(0,0)");
+          "translate(0,10)");
+        var myCircle = svg.append('g')
+        .selectAll("dot")
+        .data(data)
+        .enter()
+        .append("circle")
+          .attr("cx", function (d) {  if(d.count > 0) return 5+xScale(new Date(d.date).setHours(0,0,0,0)); } )
+          .attr("cy", function (d) {  if(d.count > 0) return y(new Date(d.date).getHours()); } )
+            .attr("r", function(d, i) {
+              if(d.count > 0){
+                  return (Math.sqrt((d.count/2)/Math.PI)) * 2;
+              } else {
+                return 0; 
+              }
+          
+        })
+          .style("fill", gridColor).attr("transform",
+          "translate(0,10)");
 
         if(firstMonday.getDate()+6 == lastSunday.getDate()){
-            var xAxis = d3.axisBottom().scale(xScale).ticks(7).tickFormat(d3.timeFormat("%a %d %b"));
+            var xAxis = d3.axisBottom().scale(xScale).ticks(7).tickFormat(d3.timeFormat("%a %d %b")).tickSizeOuter(0)
+          
         } else {
-           var xAxis = d3.axisBottom().scale(xScale).ticks(d3.timeMonday).tickFormat(d3.timeFormat("%a %d %b"));
+           var xAxis = d3.axisBottom().scale(xScale).ticks(d3.timeMonday).tickFormat(d3.timeFormat("%a %d %b")).tickSizeOuter(0)
         }
+
+
+        // var xAxis = d3.axisBottom().scale(xScale).ticks(d3.timeMonday);
+        var yAxis = d3.axisLeft().scale(y).tickValues([6,12,18,24]).tickFormat(function(d){return "Kl."+d; }).tickSizeOuter(0)
       
+      
+
       svg
         .append("g")
         .attr("class", "xaxis")
         .attr(
           "transform",
-          "translate(0,"+100+")")         
+          "translate(0,"+110+")")
+        .style("stroke", gridColor)
         .call(xAxis)
         .selectAll("text")
         .attr('transform', 'translate(13,35)rotate(90)')
-    
-        svg.selectAll(".xAxis text")
-            .style("fill", "none")
-            .style("stroke", "none")
+        .style("fill", gridColor)
+        .style("stroke", "none")
 
+      svg
+        .append("g")
+        .attr("class", "y")
+        .attr(
+          "transform",
+          "translate(40,10)")
+        .style("stroke", gridColor)
+        .call(yAxis)
+        .selectAll("text")
+        .style("fill", gridColor)
+        .style("stroke", "none")
+        
+   
+        svg.selectAll(".y path").style("stroke", gridColor)
+        svg.selectAll(".y line").style("stroke", gridColor)
+        svg.selectAll(".xaxis path").style("stroke", gridColor)
+        svg.selectAll(".xaxis line").style("stroke", gridColor)
      
       var _this = this;
 
@@ -400,7 +471,7 @@ export default {
 
         function newBrush() {
           var brush = d3.brushX()
-            .extent([[30, 0], [1030, 100]])
+            .extent([[50, 2], [1050, 110]])
             .on("brush", brushed)
             .on("end", brushend)
 
@@ -438,8 +509,9 @@ export default {
                     if (index > -1) {
                       brushes.splice(index, 1);
                     }
-                    $("#"+lastClickedId).remove();           
-                    _this.showDrawings(null, null, lastClickedId);
+                    $("#"+lastClickedId).remove();    
+                       
+                    _this.showDrawings(null, null, lastClickedId, false);
                     clicked = false;
                   }
                    
@@ -452,12 +524,12 @@ export default {
           });
 
           function brushed() {
-            /*
+            
             if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
             var k = d3.event.selection;
             var startDate = xScale.invert(k[0])
             var endDate = xScale.invert(k[1])
-            _this.showDrawings(startDate, endDate, this.id);*/
+            _this.showDrawings(startDate, endDate, this.id, false);
                   
           }
 
@@ -487,15 +559,17 @@ export default {
             var k = d3.event.selection;
             var monday = getMonday(xScale.invert(k[0]))
             var sunday = getSunday(xScale.invert(k[1]))
-            _this.showDrawings(monday, sunday, this.id);
+            
+            
             var mondayCords = xScale(monday)
             var sundayCords = xScale(sunday)
             
             if(deleted){
                 $(this).remove();
-                 _this.showDrawings(null, null, this.id);
+                 _this.showDrawings(null, null, this.id, false);
             } else {
                 d3.select(this).transition().call(brush.move, [mondayCords,sundayCords])
+                _this.showDrawings(monday, sunday, this.id, true);
             }
 
             // Always draw brushes
@@ -548,7 +622,7 @@ export default {
         var brushWidth = sundayCords-mondayCords
 
        var weekBrush = d3.brushX()
-        .extent([[30, 0], [1030, 100]])
+        .extent([[50, 0], [1050, 110]])
         .on("end", dateBrush);
 
 
@@ -559,6 +633,19 @@ export default {
 
 
          var hasBeenMoved = false;
+
+    
+         
+        
+
+        // A function that return TRUE or FALSE according if a dot is in the selection or not
+        function isBrushed(brush_coords, cx, cy) {
+            
+            var x0 = brush_coords[0],
+                x1 = brush_coords[1]
+            return x0 <= cx && x1 >= cx   // This return TRUE or FALSE depending on if the points is in the selected area
+        }
+
 
         function dateBrush() {
                   
@@ -578,7 +665,9 @@ export default {
           sunday.setHours(23,59,59)
           var mondayCords = xScale(monday)
           var sundayCords = xScale(sunday)
-         
+           var extent = d3.event.selection
+           myCircle.classed("selectedCircles", function(d){ return isBrushed(extent, xScale(new Date(d.date).setHours(0,0,0,0)),y(new Date(d.date).getHours())) } )
+          
 
           _this.displayChosenWeek(monday,sunday);
           oldSelection = k[0]
@@ -587,24 +676,32 @@ export default {
 
     }, setupxAxisForWeek(startDate, endDate){
         var width = this.calendarWidth;
-
+        
         var xScale = d3.scaleTime()
         .domain([
           startDate, endDate])
-        .range([0, width-20]);
+        .range([0, width-70]);
 
         var xAxis = d3.axisTop().scale(xScale).ticks(7).tickFormat(d3.timeFormat("%A %d %b"));
 
+      var gridColor = this.gridColor
+      
        this.calendarChart
         .append("g")
         .attr("class", "weekAxis")
         .attr(
           "transform",
-          "translate(150,35)")
+          "translate(115,35)")
         .call(xAxis).call(g => g.select(".domain").remove())
+        .selectAll("text")
+        .style("fill", gridColor)
+
+        this.calendarChart.selectAll(".xaxis path").style("stroke", gridColor)
+        this.calendarChart.selectAll(".xaxis line").style("stroke", gridColor)
 
     }, 
     saveDrawing(){
+      $(".buttonGroup").hide();
         const canvas = document.getElementById('drawing-area');
         var dataURL = canvas.toDataURL("image/png");
         var imgData = dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
@@ -667,11 +764,17 @@ export default {
       }
 
     },
-    showDrawings(startDate, endDate, id){
+    showDrawings(startDate, endDate, id, brushend){
 
         //$(".images").remove();
         $("."+id).remove();
-        
+       
+        if(startDate){
+           $("#chart").addClass("showingDrawings");
+        } else {
+           $("#chart").removeClass("showingDrawings");
+        }
+
         var chosenDays = []
         for(var monday in this.imgDict) {
           var mday = new Date(new Date(monday))
@@ -692,11 +795,11 @@ export default {
         var width = 200;
         var ImagePlaceInDict = {}
 
+          var rows = document.getElementById("rows")
+          rows.style.width = "400px";
+          var totalCounter = 0;
 
-        var rows = document.getElementById("rows")
-        rows.style.width = "400px";
-
-        var totalCounter = 0;
+                
 
         for(var i = 0; i < chosenDays.length; i++) {
             var monday = chosenDays[i]
@@ -718,12 +821,12 @@ export default {
               if(totalCounter % 1==0 ){
                 if(column){
                     rows.appendChild(column)
-                }
+                    
                 
-                var column = document.createElement('div');
-                column.className="column" 
+                
               }
-
+              var column = document.createElement('div');
+                column.className="column" 
 
               var image = document.createElement("IMG")
               image.src = "data:image/svg+xml;base64,"+this.svgDict[monday]
@@ -734,8 +837,9 @@ export default {
               image.style.height = 100 +"px";
               smallMultiplesContainer.appendChild(image);
               column.style.width = 2*width+"px"
-              column.appendChild(image);
               
+              column.appendChild(image);
+              image.style.opacity = "50%"
               
               var imageOverlay = document.createElement("IMG")
               imageOverlay.style.zIndex=zindex;
@@ -748,14 +852,22 @@ export default {
               overlayLocation+=width;
               column.appendChild(imageOverlay);
               
-              totalCounter+=1;
+              totalCounter+=1; 
+              }
+              
            }
         }
-        rows.appendChild(column)
-        smallMultiplesContainer.appendChild(rows)
+          if(column){
+            rows.appendChild(column)
+            smallMultiplesContainer.appendChild(rows)
+          }
+          
+        
+        
         
       } else {
           $(".images").remove();
+          //$("#chart").removeClass("showingDrawings");
       }
          
          var clickedItem = "old";
@@ -811,7 +923,7 @@ export default {
         this.renderCalendarGrid();
         //this.data = this.getDataForWeek(this.curr);
         this.drawGraphsForMonthlyData(this.data);
-        this.setClickEventHandler(); 
+        //this.setClickEventHandler(); 
         this.drawCategoryGrid()
     },
     handleSelection(event){
@@ -900,7 +1012,7 @@ export default {
      categoryGridCells() {
       var cellPositions = [];
       var width = 1000;
-      var height = 30;
+      var height = 2;
       var numberOfWeeks = this.numberOfWeeks;
       var numberOfCategories = this.items.length;
       var categoryDict = this.categoryOverviewDict;
@@ -911,7 +1023,7 @@ export default {
             
             cellPositions.push([
             x * (width/ numberOfWeeks),
-            y * (height / numberOfCategories),categoryDict[x][y],
+            y * (height),categoryDict[x][y],
           ]);
         }
       }
@@ -1028,13 +1140,15 @@ export default {
       var gridXTranslation = this.gridXTranslation;
       var gridYTranslation = this.gridYTranslation;
 
+      var categoryHeight = 2 * numberOfCategories; 
+
       var categoryOverview = d3
         .select("#categoryOverview")
         .append("svg")
         .attr("class", "categories")
         .attr("id", "category")
         .attr("width", 1000+45)
-        .attr("height", 30)
+        .attr("height", categoryHeight)
         .append("g");
 
       categoryOverview
@@ -1139,7 +1253,7 @@ export default {
       myCanvas.style.width = this.calendarWidth;
       myCanvas.style.height = this.calendarHeight;
       myCanvas.style.zIndex="1080";
-      myCanvas.style.left="60px";
+      myCanvas.style.left="0px";
       myCanvas.style.top="0px";
       myCanvas.width=this.calendarWidth;
       myCanvas.height=this.calendarHeight;
@@ -1204,6 +1318,7 @@ export default {
       var cellPositions = this.publicGridCellPositions();
       var gridXTranslation = this.gridXTranslation;
       var gridYTranslation = this.gridYTranslation;
+      var publicGridHeight =  this.publicGridHeight;
       var cellWidth = this.publicGridWidth / 7;
       var cellHeight = this.publicGridHeight / 24;
       var outerRadius = cellWidth / 3;
@@ -1226,6 +1341,7 @@ export default {
         .attr("height", calendarHeight)
         .append("g");
 
+      var gridColor = this.gridColor;
 
 
       // Draw rectangles at the appropriate postions, starting from the top left corner. Since we want to leave some room for the heading and buttons,
@@ -1243,11 +1359,11 @@ export default {
         })
         .attr("width", cellWidth)
         .attr("height", cellHeight)
-        .style("stroke", "#ccc4c4")
+        .style("stroke", gridColor)
         .style("fill", function(d){
           return d[2];
         })
-        .style("fill-opacity", "0.5")
+        .style("stroke-opacity", "0.3")
         .attr("id", function(d){
             return Math.floor(d[0]).toString()+Math.floor(d[1]).toString();
         })
@@ -1257,11 +1373,12 @@ export default {
         )
         .attr("class", "rect");
 
+
       var y = d3
         .scaleTime()
         .domain([new Date(2019, 0, 1), new Date(2019, 0, 2)])
         .nice(d3.timeDay)
-        .range([0, calendarHeight - 45]);
+        .range([0, publicGridHeight]);
 
       var yAxis = d3.axisLeft().scale(y).ticks(24).tickFormat(d3.timeFormat("%H"));
 
@@ -1272,7 +1389,13 @@ export default {
           "transform",
           "translate(" + gridXTranslation + "," + gridYTranslation + ")"
         )
-        .call(yAxis);
+        .call(yAxis).call(g => g.select(".domain").remove())
+        .selectAll("text")
+        .style("fill", gridColor);
+
+         this.calendarChart.selectAll(".yaxis path").style("stroke", gridColor)
+         this.calendarChart.selectAll(".yaxis line").style("stroke", gridColor)
+
 
       var daysOfTheWeek = [
         "Mandag",
@@ -1302,6 +1425,7 @@ export default {
     const strokeStyle = color;
     const shadowColor = '#333';
     canvasContext.globalCompositeOperation="source-over";
+    
 
       if(eraser){
         lineWidth= 100;
@@ -1337,6 +1461,10 @@ export default {
     // == Event Handlers ==
     // ====================
     function handleWritingStart(event) {
+      $(".buttonGroup").show();
+      $("#chart").addClass("selectedCategory")
+
+      
 
       event.preventDefault();
 
@@ -1360,11 +1488,14 @@ export default {
       event.preventDefault();
       
       if (state.mousedown && cntrlIsPressed) {
+        $("#chart").addClass("drawingCursor")
         const mousePos = getMosuePositionOnCanvas(event);
 
         canvasContext.lineTo(mousePos.x, mousePos.y);
         canvasContext.stroke();
 
+      } else {
+        $("#chart").removeClass("drawingCursor")
       }
     }
 
@@ -1393,8 +1524,8 @@ export default {
       const clientX = event.clientX || event.touches[0].clientX;
       const clientY = event.clientY || event.touches[0].clientY;
       const { offsetLeft, offsetTop } = event.target;
-      const canvasX = clientX - offsetLeft;
-      const canvasY = clientY-200;
+      const canvasX = clientX - offsetLeft -5;
+      const canvasY = clientY-282;
 
       return { x: canvasX, y: canvasY };
     }
