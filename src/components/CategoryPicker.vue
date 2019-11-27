@@ -92,44 +92,14 @@ import Modal from './Modal'
 
         },
         categoryClicked: function(item, _this){
-         this.color = item.hex;
-
-        //skal toggles i stedet
-         this.$set(item, 2, true)
-         
-
-          //$(item).cl
-        /*if(this.chosenRect.length > 0) {
-          this.modalOpen = !this.modalOpen;
-        
-          this.chosenRect.forEach(element => {
-
-            if($("#"+Math.floor(element[0]).toString()+Math.floor(element[1]).toString()).hasClass("selected"))
-            {
-            $("#"+Math.floor(element[0]).toString()+Math.floor(element[1]).toString()).removeClass("selected");
-            $("#"+Math.floor(element[0]).toString()+Math.floor(element[1]).toString()).css({"fill" :color, "fill-opacity": 0.5});
-
+          this.items.forEach( item => {
+            this.$set(item, "isSelected", false)
             }
-             
-            });
-
-          $('#repeat').hide();
-
-         this.chosenDateTime.forEach(date => {
-              this.$set(this.catDict, date, color)
-          
-         })
-
-   
-
-          this.$emit('update:catDict', this.catDict)
-          
-          this.$emit('input', !this.value)
-          }*/
-
-
+          )  
+          this.$set(item, "isSelected", true)
           this.$emit('update:selected', this.isSelected)
-          this.$emit('update:color', this.color)
+          this.$emit('update:color', "")
+          this.$emit('update:color', item.hex)
         }, openContextMenu(item){
           
           this.LastClickedItem = item; 
@@ -142,11 +112,16 @@ import Modal from './Modal'
                   left:  $(event.target).position().left + "px"
               })
         },  customMenuClick(){
-              var _this = this;
-              var index = this.items.indexOf(this.LastClickedItem);
-              if (index > -1) {
-                _this.$delete(this.items, index);
-              }
+                var result = confirm("Kategorien bliver slettet permanent. Fortsæt?");
+                if (result) {
+                  var _this = this;
+                  var index = this.items.indexOf(this.LastClickedItem);
+                  if (index > -1) {
+                    _this.$delete(this.items, index);
+                  }
+                }
+                    
+              
               $(".custom-menu2").finish().toggle(100)
                  
         },

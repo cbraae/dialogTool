@@ -3,54 +3,69 @@
   <div id="row"> 
       <Modal ref="modal" v-model="repModalOpen" :catDict.sync="catDict" :endTime="endTime" :startTime="startTime" :firstChosenDay="firstChosenDay" :lastChosenDay="lastChosenDay" :color="color" :chosenDateTime="chosenDateTime"> </Modal>
     <!-- TOP ROW: Timeline og knap-dahsboard -->
-    <div id="row">
+    <div id="row" class="Upper">
      
-      <div id="selector" class="col-8">  </div> 
+      <div id="selector" class="left">  </div> 
         
-        <div  id="categorySection" class="col-4">
-        <p id="categoryHeader"> Kategorier</p>
-        <p>
-         Tilføj en tegning ved at: <br> 1. Trykke på en kategori <br> 2. Tegn på kalenderen ved at holde venstre musetast + shift nede.
-        </p>
-        <CategoryPicker :chosenRect="chosenRect" :chosenDateTime="chosenDateTime" v-model="parentValue" :color.sync="color" :items.sync="items" :repModalOpen.sync="repModalOpen" :catDict.sync="catDict"></CategoryPicker>
-      </div>
-      </div>
+          <div  id="categorySection" class="right">
+          <p id="categoryHeader"> Kategorier</p>
+          <p>
+          Tilføj en tegning ved at: <br> 1. Trykke på en kategori <br> 2. Tegn på kalenderen ved at holde venstre musetast + shift nede.
+          </p>
+          <CategoryPicker :chosenRect="chosenRect" :chosenDateTime="chosenDateTime" v-model="parentValue" :color.sync="color" :items.sync="items" :repModalOpen.sync="repModalOpen" :catDict.sync="catDict"></CategoryPicker>
+        </div>
+     
     
     <!-- MidterRække: Kategori-overview -->
-    <div class="row">
-      <div id="categoryOverview" class="col-8"> </div>
-      <div class="col-4 align-self-end buttonGroup">
+      <div id="categoryOverview" class="left"> </div><br>
+      <div class="buttonGroup left">
           <button
               id="save"
               name="save"
               v-on:click="saveDrawing"
               class="btn btn-default drawingbuttons"
-            >GEM</button>
+            >Gem</button>
+            <button
+              id="cancel"
+              name="cancel"
+              v-on:click="cancel"
+              class="btn btn-default drawingbuttons"
+            >Fjern tegne-visning</button>    
             <button
               id="clear"
               name="clear"
               v-on:click="clearDrawing"
               class="btn btn-default drawingbuttons"
-            >RYD</button>
+            >Ryd kanvas</button>
              <button
               id="undo"
               name="undo"
               v-on:click="undo"
               class="btn btn-default drawingbuttons"
             >Visk Ud</button>         
-        </div>
+        </div>   
+    <div class="tooltipz"> <p id="value">dette er en mega fed tooltip</p></div>
     </div>
-    <div class="rows" id="rows"/>
-    <!-- Nederste: Kategori-overview -->
-    <!-- Går i stykker hvis man pakker det ind i en row  -->
-      <div id="chart"></div>
-      
-     <ul class='custom-menu'>
-      <li data-action="first">Slet</li>
-    </ul>
-  </div>
 
-  
+      <!-- Nederste: SKEMA OG SMALL MULTIPLES -->
+
+      <div class="rows" id="rows"></div>
+      <div id="chart"></div>
+    
+
+      <!-- menu til at fjerne brush-->
+     <ul class='custom-menu'>
+        <li data-action="first">Fjern Visning</li>
+      </ul>
+      <!-- menu til at slette small multiples-->
+      <ul class='custom-menu-delete'>
+        <li data-action="first">Slet</li>
+      </ul> 
+      
+
+
+
+  </div>
 </template>
 
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
@@ -80,7 +95,7 @@ export default {
       catDict: {},
       color:"",
       displayingDrawings:false,
-      calendarWidth: 1100,
+      calendarWidth: 1080,
       calendarHeight: 450,
       gridXTranslation: 55,
       gridYTranslation: 40,
@@ -105,6 +120,7 @@ export default {
         "December"
       ],
       publicGridWidth: 1010,
+      canvasExists: false,
       publicGridHeight: 400,
       publicCellWidth: this.publicGridWidth / 7,
       publicCellHeight: this.publicGridHeight / 8,
@@ -239,7 +255,8 @@ export default {
     color: {
        handler: function() {
          this.enableDrawing(this.color, false);
-       }
+       },
+       deep: true
     }
   },
   output() {
@@ -366,15 +383,12 @@ export default {
 
           
         function getSunday(d) {
-            
             d = new Date(d);
             var day = d.getDay(),
             diff = d.getDate() - day
             var sunday = new Date(d.setDate(diff));
-            sunday.setHours(23,59,59,59);
-            
+            sunday.setHours(23,59,59,59);         
             return sunday
-
           }
         
         
@@ -386,7 +400,7 @@ export default {
           firstMonday,
          lastSunday
         ])
-        .range([50, 1050])
+        .range([50, 1080])
 
         var y = d3
         .scaleLinear()
@@ -398,7 +412,7 @@ export default {
         .x(function(d) { return xScale(d.date.setHours(0,0,0,0))})
         .y(function(d) { return yScale(d.count)})
 
-        var svg = d3.select("#selector").append("svg").attr("width", 1200).attr("height",250).attr("transform",
+        var svg = d3.select("#selector").append("svg").attr("width", 1200).attr("height",175).attr("transform",
           "translate(0,10)");
         var myCircle = svg.append('g')
         .selectAll("dot")
@@ -416,7 +430,33 @@ export default {
           
         })
           .style("fill", gridColor).attr("transform",
-          "translate(0,10)");
+          "translate(0,10)")
+          .on("mouseover", handleMouseOver)
+          .on("mouseout", handleMouseOut);
+
+          function handleMouseOut(d, i) {
+            // Use D3 to select element, change color back to normal
+            d3.select(this).style("fill", "black")
+
+            $(".tooltipz").hide();
+          }
+
+          function handleMouseOver(d, i) {  // Add interactivity
+
+            // Use D3 to select element, change color and size
+            d3.select(this).style("fill", "red")
+
+            var circle = this;
+            var top = $(circle).position().top;
+            var left = $(circle).position().left;
+
+            d3.select(".tooltipz").style("left", left +20 +"px")
+            .style("top", top+"px").select("#value").text(d)
+
+           $(".tooltipz").show();
+
+          }
+
 
         if(firstMonday.getDate()+6 == lastSunday.getDate()){
             var xAxis = d3.axisBottom().scale(xScale).ticks(7).tickFormat(d3.timeFormat("%a %d %b")).tickSizeOuter(0)
@@ -471,7 +511,7 @@ export default {
 
         function newBrush() {
           var brush = d3.brushX()
-            .extent([[50, 2], [1050, 110]])
+            .extent([[50, 2], [1080, 110]])
             .on("brush", brushed)
             .on("end", brushend)
 
@@ -510,7 +550,9 @@ export default {
                       brushes.splice(index, 1);
                     }
                     $("#"+lastClickedId).remove();    
-                       
+                    $("."+lastClickedId+"smallMultiples").remove();   
+                    
+                      
                     _this.showDrawings(null, null, lastClickedId, false);
                     clicked = false;
                   }
@@ -524,7 +566,6 @@ export default {
           });
 
           function brushed() {
-            
             if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
             var k = d3.event.selection;
             var startDate = xScale.invert(k[0])
@@ -534,8 +575,6 @@ export default {
           }
 
           function brushend() {
-            
-           
             var deleted = false;
             if(!d3.event.sourceEvent) return;
             if(d3.event.sourceEvent.shiftKey){
@@ -565,11 +604,14 @@ export default {
             var sundayCords = xScale(sunday)
             
             if(deleted){
+              
                 $(this).remove();
                  _this.showDrawings(null, null, this.id, false);
             } else {
+                
                 d3.select(this).transition().call(brush.move, [mondayCords,sundayCords])
                 _this.showDrawings(monday, sunday, this.id, true);
+                _this.showSmallMutiples(monday, sunday, this.id);
             }
 
             // Always draw brushes
@@ -622,7 +664,7 @@ export default {
         var brushWidth = sundayCords-mondayCords
 
        var weekBrush = d3.brushX()
-        .extent([[50, 0], [1050, 110]])
+        .extent([[50, 0], [1080, 110]])
         .on("end", dateBrush);
 
 
@@ -699,9 +741,23 @@ export default {
         this.calendarChart.selectAll(".xaxis path").style("stroke", gridColor)
         this.calendarChart.selectAll(".xaxis line").style("stroke", gridColor)
 
-    }, 
+    }, cancel(){
+        $(".buttonGroup").css("visibility", "hidden");
+        $("#chart").removeClass("selectedCategory")
+        this.chosenColors = [];
+        this.drawCategoryGrid()
+        this.removeCanvasOverlay();
+        //$("#drawing-area").remove();
+        //this.createCanvasOverlay()
+    },
     saveDrawing(){
-      $(".buttonGroup").hide();
+      $(".buttonGroup").css("visibility", "hidden");
+      $("#chart").removeClass("selectedCategory")
+      this.items.forEach( item => {
+            this.$set(item, "isSelected", false)
+        }
+      ) 
+      
         const canvas = document.getElementById('drawing-area');
         var dataURL = canvas.toDataURL("image/png");
         var imgData = dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
@@ -719,10 +775,8 @@ export default {
          
         } else {
             this.imgDict[this.currentMonday] = []
-            
-            
             this.imgDict[this.currentMonday].push(imgData); 
-            
+
             for(var color in this.chosenColors){
                if(this.chosenColors[color].toString().includes("#")){
                 this.colorDict[imgData] = []
@@ -752,8 +806,9 @@ export default {
 
         
         this.drawCategoryGrid()
-        $("#drawing-area").remove();
-        this.createCanvasOverlay()
+        this.removeCanvasOverlay();
+        //("#drawing-area").remove();
+        //this.createCanvasOverlay()
 
 
     },clearDrawing(){
@@ -763,10 +818,159 @@ export default {
               context.clearRect(0,0,this.calendarWidth, this.calendarHeight);
       }
 
+    }, showSmallMutiples(startDate, endDate, id){
+        $("."+id+"smallMultiples").remove();
+        var chosenDays = []
+        for(var monday in this.imgDict) {
+          var mday = new Date(new Date(monday))
+
+          if(mday >= startDate && mday <= endDate){
+                  chosenDays.push(monday)
+          }
+        }
+
+        if(Object.entries(this.imgDict).length > 0){
+        var imageList = []
+        var container = document.getElementById('chart')
+        var smallMultiplesContainer = document.getElementById('categorySection')
+
+
+        var zindex = 1;
+        var overlayLocation = 30
+        var width = 200;
+        var ImagePlaceInDict = {}
+
+          var rows = document.getElementById("rows")
+          rows.style.width = "400px";
+          var totalCounter = 0;
+
+                
+
+        for(var i = 0; i < chosenDays.length; i++) {
+            var monday = chosenDays[i]
+            var chosenMonday = this.imgDict[monday]
+
+           for(var j =0; j< chosenMonday.length; j++ ){
+              var currentMonday = chosenMonday[j]
+              ImagePlaceInDict[currentMonday] = [monday,j]
+
+              if(column){
+                    rows.appendChild(column)
+              }
+
+              
+              var column = document.createElement('div');
+              column.classList="column images imagetitles "+id.toString()+"smallMultiples" + " showingDrawings "  + id.toString()+j.toString() + " "  + currentMonday.toString()
+
+              var mondayt = new Date(monday)
+              var sunday = new Date(new Date(mondayt).setDate(mondayt.getDate()+6))
+              var title = document.createTextNode("Mandag d." + mondayt.getDate() + "/" + mondayt.getMonth() + " - " + "Søndag d." + sunday.getDate() + "/" + sunday.getMonth() );
+              
+              //title.className = "imagetitles"
+
+              var image = document.createElement("IMG")
+              image.src = "data:image/svg+xml;base64,"+this.svgDict[monday]
+              image.className = "images " + id.toString()+"smallMultiples"  + " " + id.toString()+j.toString()  + "  "  + currentMonday.toString()
+              image.id = zindex.toString();
+              
+
+              //image.style.left = overlayLocation +"px"
+              image.style.width = width-5 +"px";
+              image.style.height = 100 +"px";
+              smallMultiplesContainer.appendChild(image);
+              column.style.width = 2*width-10+"px"
+              column.appendChild(title);
+              column.appendChild(image);
+              image.style.opacity = "50%"
+              
+              var imageOverlay = document.createElement("IMG")
+              imageOverlay.style.zIndex=zindex;
+              imageOverlay.style.position = "absolute";
+              imageOverlay.style.width = width-15+"px";
+              imageOverlay.style.height = "100px";
+            
+              
+              imageOverlay.src = "data:image/png;base64," + currentMonday;
+              imageOverlay.className = "smallMutipless images "+ id.toString()+"smallMultiples"  + " " + id.toString()+j.toString()  + " "  + currentMonday.toString()
+              zindex +=1;
+              overlayLocation+=width;
+              column.appendChild(imageOverlay);
+              
+              totalCounter+=1; 
+              
+              
+           }
+        }
+        }
+
+      else {
+          $(".images").remove();
+          //$("#chart").removeClass("showingDrawings");
+      }
+      if(column){
+            rows.appendChild(column)
+            smallMultiplesContainer.appendChild(rows)
+             }
+          
+         
+         var clickedItem = "old";
+         var brushId = "old"
+             $(".imagetitles")
+            .on("mousedown", function() {
+                if (event.button === 2) { // only enable for right click
+                  event.stopImmediatePropagation();
+                }
+            })
+            .on("contextmenu", function(){
+              event.preventDefault();
+              var classList = $(this)[0].classList;
+              clickedItem = classList[classList.length-1]
+              brushId = classList[classList.length-2]
+
+                 $(".custom-menu-delete").show()
+                  .css({
+                  top: event.pageY + "px",
+                  left: event.pageX + "px"
+              })
+                 $(".custom-menu-delete li").click(function(){
+                   event.preventDefault();
+
+                    switch($(this).attr("data-action")) {                
+                // A case for each action. Your actions here
+                case "first":  
+                    var result = confirm("Tegningen bliver slettet permanent. Fortsæt?");
+                    
+                    $(".custom-menu-delete").hide(100);
+
+                    if (result) {
+                        removeImage(ImagePlaceInDict[clickedItem][0],ImagePlaceInDict[clickedItem][1])
+                        $('.'+brushId.toString()).remove();
+                    }
+                    
+                    
+                  break;
+                    }
+            });
+           
+
+            });
+
+
+          var _this = this;
+
+          function removeImage(monday, arrayPlace){
+              _this.$delete(_this.colorDict, _this.imgDict[monday][arrayPlace]);
+              _this.$delete(_this.imgDict[monday], arrayPlace);
+              
+             localStorage.setItem("imgDict", JSON.stringify(_this.imgDict));
+             _this.initialiseCategoryDict();
+             _this.drawCategoryGrid();
+          }
+      
+
+        this.displayingDrawings = !this.displayingDrawings;
     },
     showDrawings(startDate, endDate, id, brushend){
-
-        //$(".images").remove();
         $("."+id).remove();
        
         if(startDate){
@@ -784,7 +988,7 @@ export default {
           }
         }
 
-        if(Object.entries(this.imgDict).length > 0) {
+        if(Object.entries(this.imgDict).length > 0){
         var imageList = []
         var container = document.getElementById('chart')
         var smallMultiplesContainer = document.getElementById('categorySection')
@@ -812,112 +1016,53 @@ export default {
               var drawing = document.createElement("IMG")
               drawing.style.zIndex=zindex;
               drawing.style.position = "absolute";
-              drawing.style.left="60px";
+              drawing.style.left="0px";
               drawing.style.top="0px";
-              drawing.className = "images "+ id.toString() + " " + id.toString()+j.toString()  + " "  + currentMonday.toString()
+              drawing.className = "bigImages images "+ id.toString() + " " + id.toString()+j.toString()  + " "  + currentMonday.toString()
               drawing.src = "data:image/png;base64," + currentMonday;
               container.appendChild(drawing);
-
-              if(totalCounter % 1==0 ){
-                if(column){
-                    rows.appendChild(column)
-                    
-                
-                
-              }
-              var column = document.createElement('div');
-                column.className="column" 
-
-              var image = document.createElement("IMG")
-              image.src = "data:image/svg+xml;base64,"+this.svgDict[monday]
-              image.className = "images " + id.toString() + " " + id.toString()+j.toString()  + " "  + currentMonday.toString()
-              image.id = zindex.toString();
-              //image.style.left = overlayLocation +"px"
-              image.style.width = width +"px";
-              image.style.height = 100 +"px";
-              smallMultiplesContainer.appendChild(image);
-              column.style.width = 2*width+"px"
-              
-              column.appendChild(image);
-              image.style.opacity = "50%"
-              
-              var imageOverlay = document.createElement("IMG")
-              imageOverlay.style.zIndex=zindex;
-              imageOverlay.style.position = "absolute";
-              imageOverlay.style.width = width+"px";
-              imageOverlay.style.height = "100px";
-              imageOverlay.src = "data:image/png;base64," + currentMonday;
-              imageOverlay.className = "smallMutipless images "+ id.toString() + " " + id.toString()+j.toString()  + " "  + currentMonday.toString()
-              zindex +=1;
-              overlayLocation+=width;
-              column.appendChild(imageOverlay);
-              
-              totalCounter+=1; 
-              }
-              
+ 
            }
         }
-          if(column){
-            rows.appendChild(column)
-            smallMultiplesContainer.appendChild(rows)
-          }
-          
-        
-        
-        
-      } else {
+        }
+
+      else {
           $(".images").remove();
           //$("#chart").removeClass("showingDrawings");
       }
-         
-         var clickedItem = "old";
-         var brushId = "old"
-             $(".images")
+        $(".bigImages")
             .on("mousedown", function() {
                 if (event.button === 2) { // only enable for right click
                   event.stopImmediatePropagation();
                 }
+                
             })
             .on("contextmenu", function(){
               event.preventDefault();
-              var classList = $(this)[0].classList;
-              clickedItem = classList[classList.length-1]
-              brushId = classList[classList.length-2]
+               /* Få fat i alle brushes og slet dem */ 
 
-                 $(".custom-menu").finish().toggle(100)
+                
+                 $(".custom-menu").show()
                   .css({
                   top: event.pageY + "px",
                   left: event.pageX + "px"
               })
                  $(".custom-menu li").click(function(){
-                    switch($(this).attr("data-action")) {                
+                   
+                  switch($(this).attr("data-action")) {                
                 // A case for each action. Your actions here
+               
                 case "first":  
-                    $('.'+brushId.toString()).remove();
-                    removeImage(ImagePlaceInDict[clickedItem][0],ImagePlaceInDict[clickedItem][1])
+                
+                    $(".custom-menu").hide(100);
+                    $(".images").remove();
+                    $("#chart").removeClass("showingDrawings")
+
                   break;
-  
-            // Hide it AFTER the action was triggered
-            $(".custom-menu").hide(100);
                     }
-                 });
-
+                  });
             });
-
-
-          var _this = this;
-
-          function removeImage(monday, arrayPlace){
-              _this.$delete(_this.colorDict, _this.imgDict[monday][arrayPlace]);
-              _this.$delete(_this.imgDict[monday], arrayPlace);
-              
-             localStorage.setItem("imgDict", JSON.stringify(_this.imgDict));
-             _this.initialiseCategoryDict();
-             _this.drawCategoryGrid();
-          }
-      
-
-        this.displayingDrawings = !this.displayingDrawings;
+    
     },
     drawCalender(){
         this.renderCalendarGrid();
@@ -1011,7 +1156,7 @@ export default {
     },
      categoryGridCells() {
       var cellPositions = [];
-      var width = 1000;
+      var width = 1030;
       var height = 2;
       var numberOfWeeks = this.numberOfWeeks;
       var numberOfCategories = this.items.length;
@@ -1072,9 +1217,9 @@ export default {
       
       this.setupxAxisForWeek(startDate, endDate)
 
-    $("#drawing-area").remove();
+      /*$("#drawing-area").remove();
        
-      this.createCanvasOverlay()
+      this.createCanvasOverlay()*/
 
     },
     getCurrentWeek(data, monday) {
@@ -1133,7 +1278,7 @@ export default {
         this.categoryNumberDict = this.initialiseCategoryNumberDict();
         var cellPositions = this.categoryGridCells();
         var numberOfWeeks = this.numberOfWeeks;
-        var cellWidth = 1000/numberOfWeeks;
+        var cellWidth = 1030/numberOfWeeks;
         var numberOfCategories = this.items.length;
         var cellHeight = 60/numberOfCategories;      
 
@@ -1147,7 +1292,7 @@ export default {
         .append("svg")
         .attr("class", "categories")
         .attr("id", "category")
-        .attr("width", 1000+45)
+        .attr("width", 1200)
         .attr("height", categoryHeight)
         .append("g");
 
@@ -1215,6 +1360,17 @@ export default {
 
       this.chartsGroup.selectAll("circle").remove();
 
+      var _this = this;
+
+
+
+      function handleMouseOut(d, i) {
+            // Use D3 to select element, change color back to normal
+            d3.select(this).style("fill", "black")
+
+            $(".tooltipz").hide();
+          }
+
       var circles = this.chartsGroup
         .selectAll("circle")
         // use the indexed data so that each pie chart can be draw in a different cell and therefore for a different day
@@ -1229,7 +1385,6 @@ export default {
         })
         .attr("transform", function(d, i) {
           var currentDataIndex = i;
-          
           return (
             "translate(" +
             (outerRadius +
@@ -1243,7 +1398,32 @@ export default {
               20) +
             ")"
           );
-        });
+        }).on("mouseover", handleMouseOver)
+        .on("mouseout", handleMouseOut);
+
+
+
+          
+      function handleMouseOver(d, i) {  // Add interactivity
+
+            // Use D3 to select element, change color and size
+            d3.select(this).style("fill", "red")
+
+            var circle = this;
+            var top = $(circle).position().top;
+            var left = $(circle).position().left;
+
+            d3.select(".tooltipz").style("left", left +20 +"px")
+            .style("top", top+"px").select("#value").text(d)
+
+           $(".tooltipz").show();
+
+          }
+
+        
+    }, removeCanvasOverlay(){
+      $("#drawing-area").remove();
+      this.canvasExists = false;
     },
     createCanvasOverlay() {
       var canvasContainer = document.getElementById('chart');
@@ -1260,6 +1440,45 @@ export default {
       myCanvas.style.overflow = 'visible';
       myCanvas.style.position = 'absolute';
       canvasContainer.appendChild(myCanvas);
+
+      var _this = this;
+       $("#drawing-area")
+            .on("mousedown", function() {
+                if (event.button === 2) { // only enable for right click
+                  event.stopImmediatePropagation();
+                }
+                
+            })
+            .on("contextmenu", function(){
+              event.preventDefault();
+               /* Få fat i alle brushes og slet dem */ 
+              
+                
+                 $(".custom-menu").show()
+                  .css({
+                  top: event.pageY + "px",
+                  left: event.pageX + "px",
+              }).css("z-index", 10000);
+                 $(".custom-menu li").click(function(){
+                    
+                   
+                  switch($(this).attr("data-action")) {                
+                // A case for each action. Your actions here
+               
+                case "first":  
+                    
+                    $(".custom-menu").hide(100);
+                    _this.cancel();
+                    _this.items.forEach( item => {
+                        _this.$set(item, "isSelected", false)
+                      }
+                    ) 
+
+                  break;
+                    }
+                  });
+            });
+
  }, initialiseCategoryDict(){
     var dict = {};
     var items = this.items;
@@ -1314,6 +1533,7 @@ export default {
     return dict;
  },
     renderCalendarGrid() {
+      $(".tooltipz").hide();
      
       var cellPositions = this.publicGridCellPositions();
       var gridXTranslation = this.gridXTranslation;
@@ -1337,7 +1557,7 @@ export default {
         .append("svg")
         .attr("class", "calendar")
         .attr("id", "calendar")
-        .attr("width", calendarWidth + gridXTranslation)
+        .attr("width", calendarWidth)
         .attr("height", calendarHeight)
         .append("g");
 
@@ -1360,9 +1580,7 @@ export default {
         .attr("width", cellWidth)
         .attr("height", cellHeight)
         .style("stroke", gridColor)
-        .style("fill", function(d){
-          return d[2];
-        })
+        .style("fill", "none")
         .style("stroke-opacity", "0.3")
         .attr("id", function(d){
             return Math.floor(d[0]).toString()+Math.floor(d[1]).toString();
@@ -1409,7 +1627,12 @@ export default {
       this.chartsGroup = this.calendarChart.append("svg:g");
 
     }, enableDrawing(color, eraser) {
-       
+
+       if(!this.canvasExists){
+         this.createCanvasOverlay()
+         this.canvasExists = true;
+       } 
+
       const canvas = document.getElementById('drawing-area');
       const canvasContext = canvas.getContext('2d');
       const state = {
@@ -1461,7 +1684,7 @@ export default {
     // == Event Handlers ==
     // ====================
     function handleWritingStart(event) {
-      $(".buttonGroup").show();
+      $(".buttonGroup").css("visibility", "visible");
       $("#chart").addClass("selectedCategory")
 
       

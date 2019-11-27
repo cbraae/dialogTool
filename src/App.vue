@@ -3,7 +3,7 @@
   <div id="app">
      <nav class="navbar navbar-dark bg-dark" id="header">
       <!--<button @click="toggleView" class="btn btn-secondary headerbtn"> Skift visning </button>  -->
-      <FileUpload :loadData.sync="loadData"/>
+      <label class="fileUpload"> Upload fil <FileUpload :loadData.sync="loadData"/> </label>
       </nav>
 
      <CalendarWeek v-if="showCalendar" :trackingData=loadData />
@@ -75,7 +75,7 @@ export default {
 }
 
 /* The whole thing */
-.custom-menu, .custom-menu2{
+.custom-menu, .custom-menu2, .custom-menu-delete{
     display: none;
     z-index: 1000;
     position: absolute;
@@ -90,7 +90,7 @@ export default {
 }
 
 /* Each of the items in the list */
-.custom-menu li, .custom-menu2 li {
+.custom-menu li, .custom-menu2 li, .custom-menu-delete li {
     padding: 8px 12px;
     cursor: pointer;
     list-style-type: none;
@@ -98,7 +98,7 @@ export default {
     user-select: none;
 }
 
-.custom-menu li:hover {
+.custom-menu li:hover,  .custom-menu2 li:hover, .custom-menu-delete li:hover {
     background-color: #DEF;
 }
 
@@ -149,14 +149,14 @@ body{
 }
 
 .selectedCategory {
-  border: 1.5px dotted;
+  border: 1.5px dotted !important;
 }
 
 
 .buttonGroup {
-  float:right;
-  margin-top:-250px;
-  display:none;
+  float:left;
+  visibility:hidden;
+  margin-left:-30px;
 }
 
 .modal{
@@ -198,6 +198,7 @@ body{
 
 .selector {
   width:100px;
+ 
 }
 /*
 #chart, .headers, #month {
@@ -209,11 +210,12 @@ body{
   margin-left:10px;
 }
 
-.btn-secondary, .btn-primary, .btn-default  {
+.btn-secondary, .btn-primary, .btn-default, .fileupload, .custom-menu, .custom-menu2,  .custom-menu-delete{
   font-size:12px;
   margin:2px;
+  background-color: white;
 }
-p {
+p, .imagetitles {
   font-size: 12px;
   text-align:left;
   float:left;
@@ -237,16 +239,18 @@ p {
 #chart {
   position:relative;
   width:1080px;
-  height:520px;
+  height:455px;
   left: 20px;
-
+  margin-top:40px;
+}
+#calendar {
+  z-index:1;
 }
 
 #categorySection{
   float:right;
   width:400px;
-  margin-top:-277px;
-  margin-right:55px;
+  margin-top:-200px;
 }
 
 .drawingbuttons{
@@ -293,8 +297,25 @@ p {
 
 li {list-style-type: none;}
 
-.fileupload {
-  width:55px;
+.gridHeader {
+  float: left;
+  margin-left: 110px;
+}
+
+.fileUpload {
+  font-size:12px;
+  color: black;
+  border-radius:5px;
+  margin-top:5px;
+  width:100px;
+  height:20px;;
+  background-color:white;
+  border: 1px solid #ccc;
+    cursor: pointer;
+}
+
+input[type="file"] {
+    display: none;
 }
 
 .swatch{
@@ -315,22 +336,44 @@ li {list-style-type: none;}
 }
 
 .weekbrush .selection{
-  fill: lightgrey !important;
+  fill: white !important;
   stroke: lightgray !important;
 }
 
 .brush .selection {
-  fill: none !important; 
-  stroke: black !important; 
+  fill:  #90ee900f !important; 
+  stroke: lightgrey !important; 
 }
 
 .showingDrawings {
-  border: 1px solid black; 
+  border: 1px solid lightgrey; 
+  background-color: #90ee9003;
+ 
 }
 
 .selected {
   fill: #007bff !important;
   fill-opacity: 0.1;
+}
+
+.tooltipz{
+  display: none;
+  position: absolute;
+  display:block;
+  width:20px;
+  height:15px;
+  z-index: 1000;
+  background-color: white;
+  font-size:12px;
+  border: 1px solid lightgray;
+  border-radius: 5px;
+}
+
+.tooltipz p {
+  color: black;
+  margin-left: 5px;
+  margin-top: -2px;
+  text-align: center;
 }
 
 .repChooser{
@@ -342,13 +385,12 @@ li {list-style-type: none;}
 }
 
 #selector {
-
+  margin-left: 10px; 
   fill: none;
 }
 
 #categoryOverview{
-    margin-top:-60px;
-    margin-left:28px;
+    margin-left:20px;
 }
 
 .brush {
@@ -372,36 +414,60 @@ ul {
   /*border: 1px solid grey*/
 }
 
+/* GRID STYLING */ 
+.upper {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0 4px;
+  flex-direction: row;
+}
+
+.lower {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0 4px;
+  flex-direction: row;
+}
+
+.left {
+  flex: 66%;
+  max-width:66%;
+  /*padding: 0 4px;*/
+}
+.right {
+  flex: 33%;
+  max-width:33%;
+  /*padding: 0 4px;*/
+}
 
 /* small multiples*/
 
 .rows {
- margin-top:92px;
+ margin-top:58px;
   display: flex;
   flex-wrap: wrap;
   padding: 0 4px;
   flex-direction: row;
   float:right;
-  margin-right:-40px;
 }
 
 /* Create two equal columns that sits next to each other */
 .column {
-  flex: 50%;
-  max-width:50%;
+  margin-top:10px;
+  margin-right:2px;
+  flex: 48%;
+  max-width:48%;
   /*padding: 0 4px;*/
 }
 
 .column img {
-  margin-top: 8px;
   vertical-align: middle;
   
 }
 
 .smallMutipless{
   position: absolute;
-  margin-top:-100px !important;
-  margin-left:-99px;
+  margin-top:-100px;
 
 }
 
