@@ -49,7 +49,7 @@
 
       <!-- Nederste: SKEMA OG SMALL MULTIPLES -->
 
-      <div class="rows" id="rows"></div>
+      <div class="rows" id="rows"><p id="noDrawings"> Ingen tegninger i den valgte periode </p></div>
       <div id="chart"></div>
     
 
@@ -805,21 +805,26 @@ export default {
         localStorage.setItem("colorDict", JSON.stringify(this.colorDict));
         localStorage.setItem("svgDict", JSON.stringify(this.svgDict));
         var numberInDict = this.findCurrentWeekNumber(this.currentMonday);
-        //var chosenColors = this.chosenColors;
-        //this.initialiseCategoryDict();
-        /*for(var i = 0; i < chosenColors.length; i++){
-            var color = chosenColors[i];
-            var catNumber = this.categoryNumberDict[color]
-            this.categoryOverviewDict[numberInDict][catNumber] = color;
-        }*/
-        
-        this.chosenColors = [];
 
         
+        this.chosenColors = [];
         this.drawCategoryGrid()
         this.removeCanvasOverlay();
-        //("#drawing-area").remove();
-        //this.createCanvasOverlay()
+
+        //REMOVE shown drawings if exist
+        if($("#chart").hasClass("showingDrawings")){
+          for(var i = 0; i < this.brushes.length-1; i++){
+            $("#brush-"+i).remove();
+          }
+                      
+          $(".custom-menu").hide(100);
+          $(".images").remove();
+          $("#chart").removeClass("showingDrawings") 
+        }
+        var currentMonth = parseInt(this.currentMonday.getMonth())+1
+        var sunday = new Date(new Date(this.currentMonday).setDate(this.currentMonday.getDate()+6))
+        alert("Tegningen til mandag d."+this.currentMonday.getDate() + "/" + currentMonth+"- søndag d."+sunday.getDate()+"/"+currentMonth+" er gemt.")
+
 
 
     },clearDrawing(){
@@ -831,6 +836,9 @@ export default {
 
     }, showSmallMutiples(startDate, endDate, id){
         $("."+id+"smallMultiples").remove();
+        $(".smallImages").off();
+        $("#noDrawings").hide();
+
         var chosenDays = []
         for(var monday in this.imgDict) {
           var mday = new Date(new Date(monday))
@@ -838,6 +846,10 @@ export default {
           if(mday >= startDate && mday <= endDate){
                   chosenDays.push(monday)
           }
+        }
+
+        if(chosenDays.length == 0){
+              $("#noDrawings").show();
         }
 
         if(Object.entries(this.imgDict).length > 0){
@@ -851,12 +863,13 @@ export default {
         var width = 200;
         var ImagePlaceInDict = {}
 
-          var rows = document.getElementById("rows")
-          rows.style.width = "400px";
-          var totalCounter = 0;
+        var rows = document.getElementById("rows")
+        rows.style.width = "400px";
+        var totalCounter = 0;
 
+       
                 
-
+        
         for(var i = 0; i < chosenDays.length; i++) {
             var monday = chosenDays[i]
             var chosenMonday = this.imgDict[monday]
@@ -875,7 +888,8 @@ export default {
 
               var mondayt = new Date(monday)
               var sunday = new Date(new Date(mondayt).setDate(mondayt.getDate()+6))
-              var title = document.createTextNode("Mandag d." + mondayt.getDate() + "/" + mondayt.getMonth() + " - " + "Søndag d." + sunday.getDate() + "/" + sunday.getMonth() );
+              var currentMonth = parseInt(mondayt.getMonth())+1
+              var title = document.createTextNode("Mandag d." + mondayt.getDate() + "/" + currentMonth + " - " + "Søndag d." + sunday.getDate() + "/" + currentMonth );
               
               //title.className = "imagetitles"
 
@@ -902,7 +916,7 @@ export default {
             
               
               imageOverlay.src = "data:image/png;base64," + currentMonday;
-              imageOverlay.className = "smallMutipless images "+ id.toString()+"smallMultiples"  + " " + id.toString()+j.toString()  + " "  + currentMonday.toString()
+              imageOverlay.className = "smallMutipless images smallImages "+ id.toString()+"smallMultiples"  + " " + id.toString()+j.toString()  + " "  + currentMonday.toString()
               zindex +=1;
               overlayLocation+=width;
               column.appendChild(imageOverlay);
@@ -926,7 +940,8 @@ export default {
          
          var clickedItem = "old";
          var brushId = "old"
-             $(".imagetitles")
+         
+             $(".smallImages")
             .on("mousedown", function() {
                 if (event.button === 2) { // only enable for right click
                   event.stopImmediatePropagation();
@@ -934,6 +949,7 @@ export default {
             })
             .on("contextmenu", function(){
               event.preventDefault();
+              var userHasAnswered = false;
               var classList = $(this)[0].classList;
               clickedItem = classList[classList.length-1]
               brushId = classList[classList.length-2]
@@ -949,13 +965,19 @@ export default {
                     switch($(this).attr("data-action")) {                
                 // A case for each action. Your actions here
                 case "first":  
-                    var result = confirm("Tegningen bliver slettet permanent. Fortsæt?");
+
+                    if(!userHasAnswered){
+                      userHasAnswered = true;
+                      var result = confirm("Tegningen bliver slettet permanent. Fortsæt?");
+                    }
+                    
                     
                     $(".custom-menu-delete").hide(100);
 
                     if (result) {
                         removeImage(ImagePlaceInDict[clickedItem][0],ImagePlaceInDict[clickedItem][1])
                         $('.'+brushId.toString()).remove();
+                        
                     }
                     
                     
@@ -973,6 +995,11 @@ export default {
               _this.$delete(_this.colorDict, _this.imgDict[monday][arrayPlace]);
               _this.$delete(_this.imgDict[monday], arrayPlace);
               
+            if(_this.imgDict[monday].length == 0){
+                _this.$delete(_this.imgDict, monday)
+             } 
+             
+
              localStorage.setItem("imgDict", JSON.stringify(_this.imgDict));
              _this.initialiseCategoryDict();
              _this.drawCategoryGrid();
