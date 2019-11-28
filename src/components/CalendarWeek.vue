@@ -94,6 +94,7 @@ export default {
       repModalOpen: false,
       catDict: {},
       color:"",
+      brushes: [],
       displayingDrawings:false,
       calendarWidth: 1080,
       calendarHeight: 450,
@@ -208,7 +209,7 @@ export default {
             this.cleanData = this.trackingData.filter(function (el) {
               return el != "";
             })
-
+            
             this.currentMonday = this.findTheMonday(this.cleanData);
             this.dict = this.getDayTimeDict();
             this.curr = this.getCurrentWeek(this.cleanData, this.currentMonday);
@@ -273,19 +274,24 @@ export default {
       //lastDate.setHours(0,0,0,0)  
       var counter = 0
       var cleanData = this.cleanData;
-      var counter = 0
 
+  
     cleanData.forEach(function(line) {
+              
               var date = new Date( new Date(line))
-              if(lastDate.getHours()===date.getHours() ){
+
+              if(lastDate.getHours()===date.getHours() && lastDate.getDate() == date.getDate()){
                 counter++;
               } else { 
-                tally.push({date:date,count:counter})
-                counter = 0;
+                
+                tally.push({date:lastDate,count:counter})
+                counter = 1;
+                lastDate = date;
               }
-              lastDate = date;
+              
       });
       return tally;
+
     },
     getTotalForEachDay(){
 
@@ -347,7 +353,7 @@ export default {
                   }
              }
         }
-      
+
       return datesInPeriod;
     },
     createTimeline(){
@@ -361,6 +367,7 @@ export default {
       var lastClickedId = ""
       var clicked = false;
       var gridColor = this.gridColor;
+
 
       var data = this.getTally();
       
@@ -507,7 +514,7 @@ export default {
         var gBrushes = svg.append('g')
           .attr("class", "brushes");
 
-        var brushes = [];
+        //var brushes = [];
 
         function newBrush() {
           var brush = d3.brushX()
@@ -515,7 +522,7 @@ export default {
             .on("brush", brushed)
             .on("end", brushend)
 
-          brushes.push({id: brushes.length, brush: brush});
+          _this.brushes.push({id: _this.brushes.length, brush: brush});
           
             d3.selectAll(".brushes")
             .on("mousedown", function() {
@@ -544,11 +551,14 @@ export default {
                 case "first":
                   if(clicked){
                     var brush = document.getElementById(lastClickedId);
-                    var index = brushes.indexOf(brush.id)
-                   
+                    
+                    var index = _this.brushes.indexOf(brush.id)
+                    
                     if (index > -1) {
-                      brushes.splice(index, 1);
+                      _this.brushes.splice(index, 1);
                     }
+                                    
+
                     $("#"+lastClickedId).remove();    
                     $("."+lastClickedId+"smallMultiples").remove();   
                     
@@ -578,15 +588,15 @@ export default {
             var deleted = false;
             if(!d3.event.sourceEvent) return;
             if(d3.event.sourceEvent.shiftKey){
-              var index = brushes.indexOf(this.id);
+              var index = _this.brushes.indexOf(this.id);
               if (index > -1) {
-                brushes.splice(index, 1);
+                _this.brushes.splice(index, 1);
               }
               deleted = true;
             }
 
             // Figure out if our latest brush has a selection
-            var lastBrushID = brushes[brushes.length - 1].id;
+            var lastBrushID = _this.brushes[_this.brushes.length - 1].id;
             var lastBrush = document.getElementById('brush-' + lastBrushID);
             var selection = d3.brushSelection(lastBrush);
 
@@ -624,7 +634,7 @@ export default {
         function drawBrushes() {
           var brushSelection = gBrushes
             .selectAll('.brush')
-            .data(brushes, function (d){return d.id});
+            .data(_this.brushes, function (d){return d.id});
 
           // Set up new brushes
           brushSelection.enter()
@@ -643,7 +653,7 @@ export default {
                 .selectAll('.overlay')
                 .style('pointer-events', function() {
                   var brush = brushObject.brush;
-                  if (brushObject.id === brushes.length-1 && brush !== undefined ) {
+                  if (brushObject.id === _this.brushes.length-1 && brush !== undefined ) {
                     return 'all';
                   } else {
                     return 'none';
@@ -751,6 +761,7 @@ export default {
         //this.createCanvasOverlay()
     },
     saveDrawing(){
+      
       $(".buttonGroup").css("visibility", "hidden");
       $("#chart").removeClass("selectedCategory")
       this.items.forEach( item => {
@@ -1030,7 +1041,9 @@ export default {
           $(".images").remove();
           //$("#chart").removeClass("showingDrawings");
       }
-        $(".bigImages")
+
+      var _this = this;
+        $("#chart, .bigImages")
             .on("mousedown", function() {
                 if (event.button === 2) { // only enable for right click
                   event.stopImmediatePropagation();
@@ -1039,6 +1052,7 @@ export default {
             })
             .on("contextmenu", function(){
               event.preventDefault();
+
                /* Få fat i alle brushes og slet dem */ 
 
                 
@@ -1053,7 +1067,11 @@ export default {
                 // A case for each action. Your actions here
                
                 case "first":  
-                
+                    for(var i = 0; i < _this.brushes.length-1; i++){
+                       $("#brush-"+i).remove();
+
+                    }
+                    
                     $(".custom-menu").hide(100);
                     $(".images").remove();
                     $("#chart").removeClass("showingDrawings")
@@ -1211,7 +1229,6 @@ export default {
         startDate
       );
       this.data = this.getDataForWeek(this.curr, startDate, endDate);
-      
       this.deleteGraph();
       this.drawCalender();
       
@@ -1228,15 +1245,13 @@ export default {
       var offset = 0;
       var currentMonday = monday;
       var currentSunday = -1;
-
-      
       for (var i = 0; i < data.length; i++) {
         var timeStamp = data[i].split(";")[0];
         var dt = new Date(timeStamp);
         if (dt >= monday) {
           
           var diff = dt.getDate() - 1
-          dt.setDate
+          //dt.setDate
           
 
             var currentSunday = new Date(
@@ -1245,6 +1260,7 @@ export default {
             stopFlag = true;
           }
           if (currentSunday !== -1 && dt <= currentSunday) {
+            
             currentWeek.push(dt);
           }
 
@@ -1253,6 +1269,7 @@ export default {
       return currentWeek;
     },
     getDataForWeek(curr, startDate,endDate) {
+      
       var weekMatrix = [];
       for (var i = 0; i < 24; i++) {
         weekMatrix[i] = new Array(7).fill(0);
@@ -1260,6 +1277,7 @@ export default {
       var dayOfWeek = 1;
       for (var i = 0; i < curr.length; i++) {
         var hours = curr[i].getHours();
+        
         var currentDay = curr[i].getDay() - 1;
         if (currentDay == -1) {
           currentDay = 6;
@@ -1393,7 +1411,7 @@ export default {
               1.02 +
             ", " +
             (outerRadius +
-              gridYTranslation - 8 +
+              gridYTranslation - 28+
               cellPositions[currentDataIndex][1] -
               20) +
             ")"

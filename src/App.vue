@@ -47,7 +47,9 @@ export default {
   methods: {
    
     async fetchData() {
-       let data = await d3.csv("/data/ptsd_filtered.csv");
+       let data = await d3.csv("/data/ptsd_filtered.csv")
+        console.log(data)          
+
        var cleanedData = data.map(
           item => item[data.columns[0]].split("Z")[0]
         );
@@ -55,7 +57,7 @@ export default {
           return item == ";";
         });
         this.loadData = cleanedData; 
-    }, 
+    },
     toggleView() { 
         this.showCalendar = !this.showCalendar;
     }
