@@ -2,7 +2,9 @@
 #header {
     height: 30px;
   }
-  
+
+ 
+ 
   #noDrawings {
     margin-right: 130px;
     display: none;
@@ -90,7 +92,7 @@
   .buttonGroup {
     float:left;
     visibility:hidden;
-    margin-left:-30px;
+    margin-left:18px;
   }
   
   .modal{
@@ -144,10 +146,12 @@
     margin-left:10px;
   }
   
-  .btn-secondary, .btn-primary, .btn-default, .fileupload, .custom-menu, .custom-menu2,  .custom-menu-delete{
-    font-size:12px;
-    margin:2px;
-    background-color: white;
+  .btn-secondary, .btn-primary, .btn-default, .fileupload, .custom-menu, .custom-menu2,  .custom-menu-delete, .drawingbuttons{
+    font-size:12px !important;
+    margin:2px !important;
+    background-color: white !important;
+    border: 1px solid lightgray !important;
+
   }
   p, .imagetitles {
     font-size: 12px;
@@ -377,7 +381,7 @@
   /* small multiples*/
   
   .rows {
-   margin-top:58px;
+   margin-top:81px;
     display: flex;
     flex-wrap: wrap;
     padding: 0 4px;
@@ -398,10 +402,35 @@
     vertical-align: middle;
     
   }
+  .slick-slide {
+    height:500px;
+ }
+ .draggable {
+    height: 391px !important;
+ }
   
   .smallMutipless{
     position: absolute;
     margin-top:-100px;
-  
   }
-  
+
+  .slick-prev:before, .slick-next:before{
+    color:lightgrey;
+}
+.slick-prev:before {
+  margin-top:-200px;
+}
+
+.slick-prev {
+  margin-top:-215px;
+  margin-left:207px;
+  transform: rotate(90deg);
+  right:185px;
+}
+
+.slick-next {
+  margin-top:198px;
+  margin-left:180px !important;
+  right:185px;
+  transform: rotate(90deg);
+}

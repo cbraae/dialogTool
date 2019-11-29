@@ -1,7 +1,7 @@
 
 <template>
   <div id="row"> 
-      <Modal ref="modal" v-model="repModalOpen" :catDict.sync="catDict" :endTime="endTime" :startTime="startTime" :firstChosenDay="firstChosenDay" :lastChosenDay="lastChosenDay" :color="color" :chosenDateTime="chosenDateTime"> </Modal>
+    
     <!-- TOP ROW: Timeline og knap-dahsboard -->
     <div id="row" class="Upper">
      
@@ -68,12 +68,11 @@
   </div>
 </template>
 
-<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 
 <script>
 import * as d3 from 'd3'
 import moment from "moment";
-import Modal from "./Modal";
+
 import Vue from "vue";
 import App from "../App.vue";
 import "bootstrap";
@@ -82,11 +81,13 @@ import CategoryPicker from './CategoryPicker.vue'
 
 
 
+
+
+
 export default {
   name: "CalendarWeek",
   props: ["trackingData", "parsedData"],
   components: {
-    Modal,
     CategoryPicker
   },
   data() {
@@ -562,6 +563,12 @@ export default {
                     $("#"+lastClickedId).remove();    
                     $("."+lastClickedId+"smallMultiples").remove();   
                     
+                    // If all images are removed, slider should be removed too
+                    if($(".smallMutiples").length == 0){
+                       if($(".rows").hasClass("slick-initialized")){
+                          $('.rows').slick("unslick")
+                        }
+                    }
                       
                     _this.showDrawings(null, null, lastClickedId, false);
                     clicked = false;
@@ -761,7 +768,8 @@ export default {
         //this.createCanvasOverlay()
     },
     saveDrawing(){
-      
+       
+        
       $(".buttonGroup").css("visibility", "hidden");
       $("#chart").removeClass("selectedCategory")
       this.items.forEach( item => {
@@ -835,6 +843,9 @@ export default {
       }
 
     }, showSmallMutiples(startDate, endDate, id){
+      if($(".rows").hasClass("slick-initialized")){
+         $('.rows').slick("unslick")
+       }
         $("."+id+"smallMultiples").remove();
         $(".smallImages").off();
         $("#noDrawings").hide();
@@ -867,9 +878,6 @@ export default {
         rows.style.width = "400px";
         var totalCounter = 0;
 
-       
-                
-        
         for(var i = 0; i < chosenDays.length; i++) {
             var monday = chosenDays[i]
             var chosenMonday = this.imgDict[monday]
@@ -936,6 +944,20 @@ export default {
             rows.appendChild(column)
             smallMultiplesContainer.appendChild(rows)
              }
+        
+          if(totalCounter>4){
+              $('.rows').slick({
+              speed: 500,
+              infinite: true,
+              vertical: true,
+              slidesToShow: 4,
+              slidesToScroll: 4,
+              verticalSwiping: true,
+              arrows: true
+              });
+          }
+        
+
           
          
          var clickedItem = "old";
@@ -977,6 +999,12 @@ export default {
                     if (result) {
                         removeImage(ImagePlaceInDict[clickedItem][0],ImagePlaceInDict[clickedItem][1])
                         $('.'+brushId.toString()).remove();
+                         // If all images are removed, slider should be removed too
+                        if($(".smallMutiples").length == 0){
+                          if($(".rows").hasClass("slick-initialized")){
+                              $('.rows').slick("unslick")
+                            }
+                        }
                         
                     }
                     
@@ -1009,6 +1037,8 @@ export default {
         this.displayingDrawings = !this.displayingDrawings;
     },
     showDrawings(startDate, endDate, id, brushend){
+
+
         $("."+id).remove();
        
         if(startDate){
@@ -1102,6 +1132,12 @@ export default {
                     $(".custom-menu").hide(100);
                     $(".images").remove();
                     $("#chart").removeClass("showingDrawings")
+                     // If all images are removed, slider should be removed too
+                    if($(".smallMutiples").length == 0){
+                       if($(".rows").hasClass("slick-initialized")){
+                          $('.rows').slick("unslick")
+                        }
+                    }
 
                   break;
                     }
@@ -1517,7 +1553,13 @@ export default {
                     _this.items.forEach( item => {
                         _this.$set(item, "isSelected", false)
                       }
-                    ) 
+                    )
+                     // If all images are removed, slider should be removed too
+                    if($(".smallMutiples").length == 0){
+                       if($(".rows").hasClass("slick-initialized")){
+                          $('.rows').slick("unslick")
+                        }
+                    } 
 
                   break;
                     }

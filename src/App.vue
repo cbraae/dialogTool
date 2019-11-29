@@ -1,5 +1,5 @@
-<template>
 
+<template>
   <div id="app">
      <nav class="navbar navbar-dark bg-dark" id="header">
       <!--<button @click="toggleView" class="btn btn-secondary headerbtn"> Skift visning </button>  -->
@@ -19,9 +19,6 @@ import FileUpload from './components/FileUpload'
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import * as d3 from 'd3'
-
-window.$ = require('jquery')
-window.JQuery = require('jquery')
 
 export default {
   name: 'app',
@@ -62,12 +59,5 @@ export default {
   }
 }
 
-
 </script>
 
-<style>
-
-/* CSS3 */
-
-
-</style>

@@ -45,9 +45,6 @@ import 'vue-datetime/dist/vue-datetime.css'
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.min.css'
 
-window.$ = require('jquery')
-window.JQuery = require('jquery')
-Vue.use(Datetime)
 
 export default {
     name: "Modal", 

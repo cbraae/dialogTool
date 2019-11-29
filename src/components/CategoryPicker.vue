@@ -25,15 +25,13 @@
 
   <ul :style="gridStyle" class="card-list">
           <li v-for="(item) in items" :key="item.text" class="card-item" v-bind:class="{ selectedCategory: item.isSelected }">
-          
-            
             <div @contextmenu="openContextMenu(item)" class="swatch" :style="{ background: item.hex}" v-bind:value="value"  v-on:click="categoryClicked(item, this)"></div> {{item.text}}<br><br>
         </li>
   </ul>
 </div>
 <div>
   <input v-model="categoryName" id="addCategory" placeholder=" Tilføj Kategori"/> 
-  <button type="button" class="btn btn-default" id="SaveBTN" @click="saveCat">Tilføj</button>
+  <button type="button" class="btn btn-default drawingsbuttons" id="SaveBTN" @click="saveCat">Tilføj</button>
 
 
 </div>
@@ -43,9 +41,11 @@
 </div>
 </template>
 
-<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 
 <script>
+
+/*window.$ = require('jquery')
+window.JQuery = require('jquery')*/
 
 import "bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
