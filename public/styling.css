@@ -8,6 +8,7 @@
   #noDrawings {
     margin-right: 130px;
     display: none;
+    margin-top:10px;
   }
   
   /* The whole thing */
@@ -71,13 +72,15 @@
       margin:0;
       /*overflow-y:hidden;*/
       overflow-x:hidden;
+
   }
   #app {
-    font-family: 'Avenir', Helvetica, Arial, sans-serif;
+    font-family:'Comfortaa', cursive;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-align: center;
     color: #2c3e50;
+    font-weight: lighter;
   }
   
   .selected {
@@ -111,16 +114,24 @@
   }
   
   #addCategory {
+    margin-left: 30px;
     margin-top: 3px;
     float:left;
     width:150px;
     height:30px;
     border: 1px solid lightgrey;
-    color: lightgrey;
     border-radius: 5px; 
+    font-size:12px;
   }
+  .desc {
+    margin-bottom: 36px;
+    margin-top: 60px;
+    margin-left:-115px;
+  }
+
   #SaveBTN {
     float:left;
+    margin-top: 3px !important;
   }
   
   ::placeholder{
@@ -147,17 +158,18 @@
   }
   
   .btn-secondary, .btn-primary, .btn-default, .fileupload, .custom-menu, .custom-menu2,  .custom-menu-delete, .drawingbuttons{
-    font-size:12px !important;
+    font-size:10px !important;
     margin:2px !important;
     background-color: white !important;
     border: 1px solid lightgray !important;
 
   }
   p, .imagetitles {
-    font-size: 12px;
+    font-size: 10px;
     text-align:left;
     float:left;
     color: lightgrey;
+
   }
   
   .btn-default {
@@ -222,7 +234,7 @@
     float:left;
     margin-top:30px;
     /*font-family: "Lucida Sans Unicode";*/
-    /*color:#746d6d;*/
+    color:#DE8D68;
     font-weight:100;
     font-size:18px;
   }
@@ -269,23 +281,28 @@
   }
   
   .headers, #cat, .weekDate {
-    font-size: 12px;
+    font-size: 8px;
     
   }
   
   .weekbrush .selection{
     fill: white !important;
-    stroke: lightgray !important;
+    stroke:lightgray;
+    /*stroke: #DE8D68 !important;*/
   }
   
   .brush .selection {
-    fill:  #90ee900f !important; 
-    stroke: lightgrey !important; 
+    fill: none;
+    stroke: #80878F !important; 
   }
   
+  #chart {
+    border: 1px solid lightgrey;
+  }
+
   .showingDrawings {
-    border: 1px solid lightgrey; 
-    background-color: #90ee9003;
+    border: 1px solid #80878F !important;
+    /*background-color: RGBA(206,174,68,0.08);*/
    
   }
   
@@ -302,15 +319,15 @@
     height:15px;
     z-index: 1000;
     background-color: white;
-    font-size:12px;
+    font-size:8px;
     border: 1px solid lightgray;
     border-radius: 5px;
   }
   
-  .tooltipz p {
+  .tooltipz > p {
     color: black;
     margin-left: 5px;
-    margin-top: -2px;
+    /*margin-top: -2px;*/
     text-align: center;
   }
   
@@ -377,16 +394,48 @@
     max-width:33%;
     /*padding: 0 4px;*/
   }
-  
+.chosenColor {
+  margin-top: 7px;
+  margin-right: -3px;
+}
+
+
+  .color-list {
+    height:30px;
+    width:220px;
+    display: flex;
+    flex-direction: row;
+    z-index: 1000;
+    position: absolute;
+    overflow: hidden;
+    border: 1px solid #CCC;
+    white-space: nowrap;
+    font-family: sans-serif;
+    background: #FFF;
+    color: #333;
+    border-radius: 5px;
+    padding: 0;
+  }
+
+  .color {
+    flex: 8%;
+  }
+
+  .color-item {
+    margin:2px;
+  }
   /* small multiples*/
   
   .rows {
-   margin-top:81px;
+   margin-top:40px;
     display: flex;
     flex-wrap: wrap;
     padding: 0 4px;
     flex-direction: row;
     float:right;
+  }
+  .categoryPicker {
+    margin-bottom:34px;
   }
   
   /* Create two equal columns that sits next to each other */
@@ -433,4 +482,10 @@
   margin-left:180px !important;
   right:185px;
   transform: rotate(90deg);
+}
+
+.categoryText {
+  margin-left:25px;
+  margin-top:4px;
+  color: black;
 }

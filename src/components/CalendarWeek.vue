@@ -8,11 +8,11 @@
       <div id="selector" class="left">  </div> 
         
           <div  id="categorySection" class="right">
-          <p id="categoryHeader"> Kategorier</p>
-          <p>
-          Tilføj en tegning ved at: <br> 1. Trykke på en kategori <br> 2. Tegn på kalenderen ved at holde venstre musetast + shift nede.
+          <p id="categoryHeader"> KATEGORIER</p>
+          <p class="desc">
+          Tilføj en tegning ved at: <br> 1. Trykke på en kategori <br> 2. Tegn på kalenderen ved at holde shift + venstre musetast nede.
           </p>
-          <CategoryPicker :chosenRect="chosenRect" :chosenDateTime="chosenDateTime" v-model="parentValue" :color.sync="color" :items.sync="items" :repModalOpen.sync="repModalOpen" :catDict.sync="catDict"></CategoryPicker>
+          <CategoryPicker :chosenRect="chosenRect" :chosenDateTime="chosenDateTime" v-model="parentValue" class="categoryPicker" :color.sync="color" :items.sync="items" :repModalOpen.sync="repModalOpen" :catDict.sync="catDict"></CategoryPicker>
         </div>
      
     
@@ -136,9 +136,9 @@ export default {
       chosenDateTime: [],
       colorDict:{},
       items: [ 
-            { text: 'Venner', hex:"#8e0152", isSelected: false},
-            { text: 'Familie', hex:"#c51b7d", isSelected: false},
-            { text: 'Arbejde', hex:"#de77ae", isSelected: false}
+            { text: 'Venner', hex:"#a6cee3", isSelected: false},
+            { text: 'Familie', hex:"#b15928", isSelected: false},
+            { text: 'Arbejde', hex:"#1f78b4", isSelected: false}
         ],
       parentValue: false,
       dict: [],
@@ -157,10 +157,7 @@ export default {
     };
   },
   mounted() {
-       
-
-
-
+      
   },
   watch: {
     catDict:{
@@ -204,18 +201,25 @@ export default {
     },
     trackingData: {
       handler: function() {
-         
+      if(this.trackingData.length > 1) {
+        var trackData = this.trackingData.filter(function (el) {
+          return el != "";
+      })
+
+        var _this = this; 
+        this.cleanData = trackData.map(function(element) { 
+          
+          var elem = _this.parseDate(element)
+          console.log(elem)
+          return elem;
+        });
+        
             
-            if(this.trackingData.length > 1) {
-            this.cleanData = this.trackingData.filter(function (el) {
-              return el != "";
-            })
+        this.currentMonday = this.findTheMonday(this.cleanData);
+        this.dict = this.getDayTimeDict();
+        
+        this.curr = this.getCurrentWeek(this.cleanData, this.currentMonday);
             
-            this.currentMonday = this.findTheMonday(this.cleanData);
-            this.dict = this.getDayTimeDict();
-            this.curr = this.getCurrentWeek(this.cleanData, this.currentMonday);
-            
-       
         this.observationsPerDay = this.getTotalForEachDay();
         this.numberOfWeeks = this.getAmountOfWeeks();
 
@@ -269,7 +273,7 @@ export default {
 
       this.enableDrawing("rgba(255,255,255,1)", true)
     }, getTally(){
-       var tally = [];
+      var tally = [];
       var firstTime = true
       var lastDate = new Date( new Date(this.cleanData[0]))
       //lastDate.setHours(0,0,0,0)  
@@ -289,23 +293,34 @@ export default {
                 counter = 1;
                 lastDate = date;
               }
-              
+             
       });
+      tally.push({date:lastDate,count:counter})
       return tally;
-
     },
-    getTotalForEachDay(){
+    parseDate(input) {
+      if(input.toString().includes("-")){
+        input+="z"
+        return new Date(input)
+      } else 
+        return new Date(Date.UTC(
+          parseInt(input.slice(0, 4), 10),
+          parseInt(input.slice(4, 6), 10) - 1,
+          parseInt(input.slice(6, 8), 10),
+          parseInt(input.slice(9, 11), 10),
+          parseInt(input.slice(11, 13), 10),
+          parseInt(input.slice(13,15), 10)
+        ));
+    }, getTotalForEachDay(){
 
       Date.prototype.addDays = function(days) {
           var date = new Date(this.valueOf());
           date.setDate(date.getDate() + days);
-          //date.setHours(0,0,0,0)
           return date;
       }
 
       function getDates(startDate, stopDate) {
-          var sunday = new Date(stopDate.setDate(stopDate.getDate() + (1 + 6 - stopDate.getDay()) % 6))
-          
+          var sunday = new Date(stopDate.setDate(stopDate.getDate() + (7 - stopDate.getDay()) % 7))
           var dateArray = new Array();
           var currentDate = startDate;
           currentDate.setHours(0,0,0,0)
@@ -323,13 +338,12 @@ export default {
           return dateArray;
       }
 
-      var datesInPeriod= getDates(new Date(new Date(this.cleanData[0])) ,new Date( new Date(this.cleanData[this.cleanData.length-1])))
-   
+      var datesInPeriod= getDates(new Date((this.cleanData[0])), new Date( this.cleanData[this.cleanData.length-1]))
+     
 
       var tally = [];
       var firstTime = true
       var lastDate = new Date( new Date(this.cleanData[0]))
-      //lastDate.setHours(0,0,0,0)  
       var counter = 0
       var cleanData = this.cleanData;
       var counter = 0
@@ -386,6 +400,7 @@ export default {
 
             var monday = new Date(d.setDate(diff));
             monday.setHours(0,0,0,0);
+            
             return monday
           }
 
@@ -566,10 +581,13 @@ export default {
                     // If all images are removed, slider should be removed too
                     if($(".smallMutiples").length == 0){
                        if($(".rows").hasClass("slick-initialized")){
-                          $('.rows').slick("unslick")
+                          $('.rows').slick("unslick");
+                          $(".images").remove();
+                          
+                          
                         }
                     }
-                      
+                    $("#noDrawings").hide();
                     _this.showDrawings(null, null, lastClickedId, false);
                     clicked = false;
                   }
@@ -690,12 +708,7 @@ export default {
         .call(weekBrush)
         .call(weekBrush.move, [mondayCords, sundayCords])
 
-
-         var hasBeenMoved = false;
-
-    
-         
-        
+        var hasBeenMoved = false;
 
         // A function that return TRUE or FALSE according if a dot is in the selection or not
         function isBrushed(brush_coords, cx, cy) {
@@ -753,7 +766,7 @@ export default {
           "translate(115,35)")
         .call(xAxis).call(g => g.select(".domain").remove())
         .selectAll("text")
-        .style("fill", gridColor)
+        .style("fill", "#DE8D68")
 
         this.calendarChart.selectAll(".xaxis path").style("stroke", gridColor)
         this.calendarChart.selectAll(".xaxis line").style("stroke", gridColor)
@@ -761,6 +774,10 @@ export default {
     }, cancel(){
         $(".buttonGroup").css("visibility", "hidden");
         $("#chart").removeClass("selectedCategory")
+        this.items.forEach( item => {
+            this.$set(item, "isSelected", false)
+          }
+        )
         this.chosenColors = [];
         this.drawCategoryGrid()
         this.removeCanvasOverlay();
@@ -889,7 +906,7 @@ export default {
               if(column){
                     rows.appendChild(column)
               }
-
+              
               
               var column = document.createElement('div');
               column.classList="column images imagetitles "+id.toString()+"smallMultiples" + " showingDrawings "  + id.toString()+j.toString() + " "  + currentMonday.toString()
@@ -1003,6 +1020,7 @@ export default {
                         if($(".smallMutiples").length == 0){
                           if($(".rows").hasClass("slick-initialized")){
                               $('.rows').slick("unslick")
+                              $("#noDrawings").hide();
                             }
                         }
                         
@@ -1136,6 +1154,7 @@ export default {
                     if($(".smallMutiples").length == 0){
                        if($(".rows").hasClass("slick-initialized")){
                           $('.rows').slick("unslick")
+                          $("#noDrawings").hide();
                         }
                     }
 
@@ -1277,11 +1296,11 @@ export default {
       return cellPositions;
     },
     findTheMonday(data) {
-      var dto = new Date(data[data.length - 1].split(";")[0]);
+
+      var dto = new Date(data[data.length - 1]);
       var diff = dto.getDay() - 1;
-
       dto.setDate(dto.getDate() - diff);
-
+     
       return dto;
     },displayChosenWeek(startDate, endDate){
       this.currentMonday = startDate
@@ -1303,25 +1322,26 @@ export default {
 
     },
     getCurrentWeek(data, monday) {
+      
       var currentWeek = [];
       var stopFlag = false;
       var offset = 0;
       var currentMonday = monday;
       var currentSunday = -1;
+      
       for (var i = 0; i < data.length; i++) {
-        var timeStamp = data[i].split(";")[0];
+        var timeStamp = data[i];
         var dt = new Date(timeStamp);
         if (dt >= monday) {
           
           var diff = dt.getDate() - 1
-          //dt.setDate
-          
 
             var currentSunday = new Date(
-              new Date(currentMonday).setDate(currentMonday.getDate() + 7)
+              new Date(currentMonday).setDate(currentMonday.getDate() + 6)
             );
             stopFlag = true;
           }
+
           if (currentSunday !== -1 && dt <= currentSunday) {
             
             currentWeek.push(dt);
@@ -1488,7 +1508,7 @@ export default {
       function handleMouseOver(d, i) {  // Add interactivity
 
             // Use D3 to select element, change color and size
-            d3.select(this).style("fill", "red")
+            d3.select(this).style("fill", "#DE8D68")
 
             var circle = this;
             var top = $(circle).position().top;
@@ -1834,8 +1854,8 @@ export default {
       const clientX = event.clientX || event.touches[0].clientX;
       const clientY = event.clientY || event.touches[0].clientY;
       const { offsetLeft, offsetTop } = event.target;
-      const canvasX = clientX - offsetLeft -5;
-      const canvasY = clientY-282;
+      const canvasX = clientX - offsetLeft -18;
+      const canvasY = clientY-294;
 
       return { x: canvasX, y: canvasY };
     }

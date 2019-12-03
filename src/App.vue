@@ -45,13 +45,18 @@ export default {
    
     async fetchData() {
        let data = await d3.csv("/data/ptsd_filtered.csv")
+       var firstDataPoint = data[0]
+
        var cleanedData = data.map(
+         
           item => item[data.columns[0]].split("Z")[0]
+
         );
         cleanedData.removeIf(function(item, idx) {
           return item == ";";
         });
         this.loadData = cleanedData; 
+        
     },
     toggleView() { 
         this.showCalendar = !this.showCalendar;

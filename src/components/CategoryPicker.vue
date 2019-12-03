@@ -25,19 +25,26 @@
 
   <ul :style="gridStyle" class="card-list">
           <li v-for="(item) in items" :key="item.text" class="card-item" v-bind:class="{ selectedCategory: item.isSelected }">
-            <div @contextmenu="openContextMenu(item)" class="swatch" :style="{ background: item.hex}" v-bind:value="value"  v-on:click="categoryClicked(item, this)"></div> {{item.text}}<br><br>
+            <div @contextmenu="openContextMenu(item)" class="swatch" :style="{ background: item.hex}" v-bind:value="value"  v-on:click="categoryClicked(item, this)"></div> <p class="categoryText"> {{item.text}}</p><br><br>
         </li>
   </ul>
 </div>
 <div>
   <input v-model="categoryName" id="addCategory" placeholder=" Tilføj Kategori"/> 
-  <button type="button" class="btn btn-default drawingsbuttons" id="SaveBTN" @click="saveCat">Tilføj</button>
-
+  <div class="swatch chosenColor" :style="{ background: currentColor }" v-on:click="colorPicker" /> <button type="button" class="btn btn-default drawingsbuttons" id="SaveBTN" @click="saveCat">Tilføj</button>
 
 </div>
 <ul class='custom-menu2'>
       <li v-on:click="customMenuClick()">Slet</li>
-    </ul>
+</ul>
+<br>
+<div v-if="colorPickerChosen"> 
+ <ul class="color-list" v-if="colorPickerChosen">
+          <li v-for="item in colors" :key="item.index" class="color">
+            <div class="swatch color-item" :style="{ background: item}" v-bind:value="value"  v-on:click="colorClicked(item, this)"></div>
+        </li>
+  </ul>
+</div>
 </div>
 </template>
 
@@ -58,30 +65,32 @@ import Modal from './Modal'
         Modal
       },data() {
         return {
+          colorPickerChosen: false,
           modalOpen:false,
           categoryName: "",
           colorCounter: 0,
-          colors: [ "#b8e186","#7fbc41","#4d9221","#276419", "#d9d9d9", "#bc80bd","#ccebc5", "#ffed6f"],
+          currentColor: "",
+          colors: [ "#1f78b4","#b2df8a","#33a02c","#fb9a99", "#e31a1c", "#b15928","#a6cee3", "#cab2d6"],
           LastClickedItem: "",
           numberOfColumns: 4,
           isSelected: false
         };
+      }, mounted(){
+        this.currentColor = this.colors[1]
       },
       
       methods: {
         saveCat: function(event){
-          this.items.push({ text: this.categoryName, hex: this.colors[this.colorCounter]});
+          this.items.push({ text: this.categoryName, hex: this.currentColor});
           this.categoryName = "";
-          this.colorCounter++;
+          //this.colorCounter++;
           
         },
-        getRandomColor: function() {
-          var letters = '0123456789ABCDEF';
-          var color = '#';
-          for (var i = 0; i < 6; i++) {
-            color += letters[Math.floor(Math.random() * 16)];
-          }
-          return color;
+        colorPicker: function() {
+          this.colorPickerChosen = !this.colorPickerChosen;
+        }, colorClicked: function(item){
+            this.currentColor = item
+            this.colorPickerChosen = false;
         },
         closeModal: function() {
           this.modalOpen = false;
