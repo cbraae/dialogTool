@@ -14,10 +14,7 @@
           </p>
           <CategoryPicker :chosenRect="chosenRect" :chosenDateTime="chosenDateTime" v-model="parentValue" class="categoryPicker" :color.sync="color" :items.sync="items" :repModalOpen.sync="repModalOpen" :catDict.sync="catDict"></CategoryPicker>
         </div>
-     
-    
-    <!-- MidterRække: Kategori-overview -->
-      <div id="categoryOverview" class="left"> </div><br>
+<div id="categoryOverview" class="left"> </div>
       <div class="buttonGroup left">
           <button
               id="save"
@@ -107,6 +104,10 @@ export default {
       showDrawingsTitle: "Vis tidligere kommentarer",
       numberOfWeeks: 0,
       gridColor: "lightgrey",
+      currentlyShownImages: [],
+      brushImageDict: {},
+      currentlyShownMondays: [],
+      ImagePlaceInDict: {},
       monthNames: [
         "January",
         "February",
@@ -210,7 +211,6 @@ export default {
         this.cleanData = trackData.map(function(element) { 
           
           var elem = _this.parseDate(element)
-          console.log(elem)
           return elem;
         });
         
@@ -427,7 +427,7 @@ export default {
 
         var y = d3
         .scaleLinear()
-        .domain([0, 24])
+        .domain([24, 0])
         .range([100,0])
 
 
@@ -436,7 +436,7 @@ export default {
         .y(function(d) { return yScale(d.count)})
 
         var svg = d3.select("#selector").append("svg").attr("width", 1200).attr("height",175).attr("transform",
-          "translate(0,10)");
+          "translate(0,0)");
         var myCircle = svg.append('g')
         .selectAll("dot")
         .data(data)
@@ -453,40 +453,18 @@ export default {
           
         })
           .style("fill", gridColor).attr("transform",
-          "translate(0,10)")
-          .on("mouseover", handleMouseOver)
-          .on("mouseout", handleMouseOut);
+          "translate(0,70)")
 
-          function handleMouseOut(d, i) {
-            // Use D3 to select element, change color back to normal
-            d3.select(this).style("fill", "black")
-
-            $(".tooltipz").hide();
-          }
-
-          function handleMouseOver(d, i) {  // Add interactivity
-
-            // Use D3 to select element, change color and size
-            d3.select(this).style("fill", "red")
-
-            var circle = this;
-            var top = $(circle).position().top;
-            var left = $(circle).position().left;
-
-            d3.select(".tooltipz").style("left", left +20 +"px")
-            .style("top", top+"px").select("#value").text(d)
-
-           $(".tooltipz").show();
-
-          }
-
+         
 
         if(firstMonday.getDate()+6 == lastSunday.getDate()){
-            var xAxis = d3.axisBottom().scale(xScale).ticks(7).tickFormat(d3.timeFormat("%a %d %b")).tickSizeOuter(0)
-          
+            var xAxis = axisTop().scale(xScale).ticks(7).tickFormat(d3.timeFormat("%a %d %b")).tickSizeOuter(0)
+            var bottomAxis =  axisBottom().scale(xScale).ticks(7).tickFormat(d3.timeFormat("%a %d %b")).tickSizeOuter(0)      
         } else {
-           var xAxis = d3.axisBottom().scale(xScale).ticks(d3.timeMonday).tickFormat(d3.timeFormat("%a %d %b")).tickSizeOuter(0)
+           var xAxis = d3.axisTop().scale(xScale).ticks(d3.timeMonday).tickFormat(d3.timeFormat("%a %d %b")).tickSizeOuter(0)
+           var bottomAxis =  d3.axisBottom().scale(xScale).ticks(d3.timeMonday).tickFormat(d3.timeFormat("%a %d %b")).tickSizeOuter(0)
         }
+
 
 
         // var xAxis = d3.axisBottom().scale(xScale).ticks(d3.timeMonday);
@@ -499,42 +477,58 @@ export default {
         .attr("class", "xaxis")
         .attr(
           "transform",
-          "translate(0,"+110+")")
+          "translate(0,65)")
         .style("stroke", gridColor)
         .call(xAxis)
         .selectAll("text")
-        .attr('transform', 'translate(13,35)rotate(90)')
+        .attr('transform', 'translate(-10,-15)rotate(45)')
         .style("fill", gridColor)
         .style("stroke", "none")
+
+      svg
+        .append("g")
+        .attr("class", "bottomAxis")
+        .attr(
+          "transform",
+          "translate(0,170)")
+        .style("stroke", gridColor)
+        .call(bottomAxis)
+        .selectAll("text")
+        .attr('transform', 'translate(-10,-15)rotate(45)')
+        .style("stroke", "none")
+        .style("fill","none")
+
+
 
       svg
         .append("g")
         .attr("class", "y")
         .attr(
           "transform",
-          "translate(40,10)")
+          "translate(40,65)")
         .style("stroke", gridColor)
         .call(yAxis)
         .selectAll("text")
         .style("fill", gridColor)
-        .style("stroke", "none")
+        .style("stroke","none")
+
         
    
         svg.selectAll(".y path").style("stroke", gridColor)
         svg.selectAll(".y line").style("stroke", gridColor)
         svg.selectAll(".xaxis path").style("stroke", gridColor)
         svg.selectAll(".xaxis line").style("stroke", gridColor)
+        svg.selectAll(".bottomAxis path").style("stroke", gridColor)
+        svg.selectAll(".bottomAxis line").style("stroke", gridColor)
      
       var _this = this;
 
         var gBrushes = svg.append('g')
           .attr("class", "brushes");
 
-        //var brushes = [];
-
         function newBrush() {
           var brush = d3.brushX()
-            .extent([[50, 2], [1080, 110]])
+            .extent([[50, 66], [1080, 170]])
             .on("brush", brushed)
             .on("end", brushend)
 
@@ -573,22 +567,29 @@ export default {
                     if (index > -1) {
                       _this.brushes.splice(index, 1);
                     }
+                    delete _this.brushImageDict[lastClickedId];
+                    $("#"+lastClickedId).remove();  
+                    _this.showDrawings(null, null, lastClickedId, false);
+                    _this.showSmallMutiples(null, null, lastClickedId);
+
+                    /*
                                     
 
-                    $("#"+lastClickedId).remove();    
+                      
                     $("."+lastClickedId+"smallMultiples").remove();   
-                    
+                   
+
                     // If all images are removed, slider should be removed too
-                    if($(".smallMutiples").length == 0){
+                    if($(".smallImages").length == 0){
+                    
+                      
                        if($(".rows").hasClass("slick-initialized")){
                           $('.rows').slick("unslick");
                           $(".images").remove();
-                          
-                          
                         }
                     }
                     $("#noDrawings").hide();
-                    _this.showDrawings(null, null, lastClickedId, false);
+                    _this.showDrawings(null, null, lastClickedId, false); */
                     clicked = false;
                   }
                    
@@ -610,6 +611,7 @@ export default {
           }
 
           function brushend() {
+            
             var deleted = false;
             if(!d3.event.sourceEvent) return;
             if(d3.event.sourceEvent.shiftKey){
@@ -638,10 +640,14 @@ export default {
             var mondayCords = xScale(monday)
             var sundayCords = xScale(sunday)
             
-            if(deleted){
-              
+            
+            if(deleted || monday > sunday){
+                delete _this.brushImageDict[lastBrush]
                 $(this).remove();
                  _this.showDrawings(null, null, this.id, false);
+                 
+                //_this.showSmallMutiples(null, null, this.id);
+
             } else {
                 
                 d3.select(this).transition().call(brush.move, [mondayCords,sundayCords])
@@ -699,7 +705,7 @@ export default {
         var brushWidth = sundayCords-mondayCords
 
        var weekBrush = d3.brushX()
-        .extent([[50, 0], [1080, 110]])
+        .extent([[50, 66], [1080, 170]])
         .on("end", dateBrush);
 
 
@@ -863,22 +869,9 @@ export default {
       if($(".rows").hasClass("slick-initialized")){
          $('.rows').slick("unslick")
        }
-        $("."+id+"smallMultiples").remove();
-        $(".smallImages").off();
-        $("#noDrawings").hide();
-
-        var chosenDays = []
-        for(var monday in this.imgDict) {
-          var mday = new Date(new Date(monday))
-
-          if(mday >= startDate && mday <= endDate){
-                  chosenDays.push(monday)
-          }
-        }
-
-        if(chosenDays.length == 0){
-              $("#noDrawings").show();
-        }
+       $(".imgs").remove();
+       $("#noDrawings").hide();
+       $(".smallImages").off();
 
         if(Object.entries(this.imgDict).length > 0){
         var imageList = []
@@ -889,19 +882,16 @@ export default {
         var zindex = 1;
         var overlayLocation = 30
         var width = 200;
-        var ImagePlaceInDict = {}
 
         var rows = document.getElementById("rows")
         rows.style.width = "400px";
         var totalCounter = 0;
 
-        for(var i = 0; i < chosenDays.length; i++) {
-            var monday = chosenDays[i]
-            var chosenMonday = this.imgDict[monday]
-
-           for(var j =0; j< chosenMonday.length; j++ ){
-              var currentMonday = chosenMonday[j]
-              ImagePlaceInDict[currentMonday] = [monday,j]
+      for(var brush in this.brushImageDict){
+      var imagesFromBrush = this.brushImageDict[brush]
+        for(var i =0; i < imagesFromBrush.length; i++){
+              var currentMonday = imagesFromBrush[i]
+              var monday = this.currentlyShownMondays[i]
 
               if(column){
                     rows.appendChild(column)
@@ -909,7 +899,7 @@ export default {
               
               
               var column = document.createElement('div');
-              column.classList="column images imagetitles "+id.toString()+"smallMultiples" + " showingDrawings "  + id.toString()+j.toString() + " "  + currentMonday.toString()
+              column.classList="column images imagetitles imgs "+id.toString()+ " showingDrawings "  + currentMonday.toString()
 
               var mondayt = new Date(monday)
               var sunday = new Date(new Date(mondayt).setDate(mondayt.getDate()+6))
@@ -920,7 +910,7 @@ export default {
 
               var image = document.createElement("IMG")
               image.src = "data:image/svg+xml;base64,"+this.svgDict[monday]
-              image.className = "images " + id.toString()+"smallMultiples"  + " " + id.toString()+j.toString()  + "  "  + currentMonday.toString()
+              image.className = "images imgs " + id.toString()  + " " + currentMonday.toString()
               image.id = zindex.toString();
               
 
@@ -941,7 +931,7 @@ export default {
             
               
               imageOverlay.src = "data:image/png;base64," + currentMonday;
-              imageOverlay.className = "smallMutipless images smallImages "+ id.toString()+"smallMultiples"  + " " + id.toString()+j.toString()  + " "  + currentMonday.toString()
+              imageOverlay.className = "smallMutipless images smallImages imgs "+ id.toString()  + " " + currentMonday.toString()
               zindex +=1;
               overlayLocation+=width;
               column.appendChild(imageOverlay);
@@ -953,32 +943,30 @@ export default {
         }
         }
 
-      else {
-          $(".images").remove();
-          //$("#chart").removeClass("showingDrawings");
-      }
       if(column){
             rows.appendChild(column)
             smallMultiplesContainer.appendChild(rows)
              }
         
-          if(totalCounter>4){
+          if($(".smallImages").length > 6){
               $('.rows').slick({
-              speed: 500,
+              speed: 800,
               infinite: true,
               vertical: true,
-              slidesToShow: 4,
-              slidesToScroll: 4,
+              slidesToShow: 3,
               verticalSwiping: true,
               arrows: true
               });
           }
         
 
-          
+          if($(".smallImages").length ==  0){
+            $("#noDrawings").show();
+          }
          
          var clickedItem = "old";
          var brushId = "old"
+         var _this = this;
          
              $(".smallImages")
             .on("mousedown", function() {
@@ -1014,13 +1002,35 @@ export default {
                     $(".custom-menu-delete").hide(100);
 
                     if (result) {
-                        removeImage(ImagePlaceInDict[clickedItem][0],ImagePlaceInDict[clickedItem][1])
-                        $('.'+brushId.toString()).remove();
+                       
+                        removeImage(_this.ImagePlaceInDict[clickedItem][0],_this.ImagePlaceInDict[clickedItem][1])
+
+                        for(var i=0; i < _this.brushImageDict[brushId].length; i++ ){
+                          if(_this.brushImageDict[brushId][i].toString().localeCompare(clickedItem) == 0){
+                            var index = i;
+                          }
+                        }
+
+                      
+                      _this.brushImageDict[brushId].splice(index, 1);
+                      
+                      if(_this.brushImageDict[brushId].length == 0){
+                        delete _this.brushImageDict[brushId]
+                      }
+
+                        _this.showSmallMutiples("", "", brushId);
+                        
+                        
+                       
+                        //$('.'+brushId.toString()).remove();
                          // If all images are removed, slider should be removed too
-                        if($(".smallMutiples").length == 0){
+                        if($(".smallImages").length == 0){
+                          
+                          $("#"+brushId.toString()).remove();
                           if($(".rows").hasClass("slick-initialized")){
                               $('.rows').slick("unslick")
                               $("#noDrawings").hide();
+                              
                             }
                         }
                         
@@ -1034,8 +1044,6 @@ export default {
 
             });
 
-
-          var _this = this;
 
           function removeImage(monday, arrayPlace){
               _this.$delete(_this.colorDict, _this.imgDict[monday][arrayPlace]);
@@ -1056,62 +1064,78 @@ export default {
     },
     showDrawings(startDate, endDate, id, brushend){
 
+        //Altid slet alle billeder først
+        $(".bigImages").remove();
+        
 
-        $("."+id).remove();
-       
+        /*
         if(startDate){
            $("#chart").addClass("showingDrawings");
         } else {
            $("#chart").removeClass("showingDrawings");
-        }
+        } */
 
         var chosenDays = []
         for(var monday in this.imgDict) {
           var mday = new Date(new Date(monday))
 
           if(mday >= startDate && mday <= endDate){
-                  chosenDays.push(monday)
+              chosenDays.push(monday)
           }
         }
 
-        if(Object.entries(this.imgDict).length > 0){
-        var imageList = []
-        var container = document.getElementById('chart')
-        var smallMultiplesContainer = document.getElementById('categorySection')
-
-
-        var zindex = 1;
-        var overlayLocation = 30
-        var width = 200;
-        var ImagePlaceInDict = {}
-
-          var rows = document.getElementById("rows")
-          rows.style.width = "400px";
-          var totalCounter = 0;
-
-                
-
+        this.ImagePlaceInDict = {}
+        this.brushImageDict[id] = []
+        this.currentlyShownMondays = []
         for(var i = 0; i < chosenDays.length; i++) {
             var monday = chosenDays[i]
             var chosenMonday = this.imgDict[monday]
 
            for(var j =0; j< chosenMonday.length; j++ ){
               var currentMonday = chosenMonday[j]
-              ImagePlaceInDict[currentMonday] = [monday,j]
-            
+              this.ImagePlaceInDict[currentMonday] = [monday,j]
+              this.currentlyShownMondays.push(monday)
+              //this.currentlyShownImages.push(currentMonday)
+
+              //Keep track of which brush holds which images
+              this.brushImageDict[id].push(currentMonday)
+              
+
+           }
+        }
+        
+
+        if(Object.entries(this.imgDict).length > 0){
+        var imageList = []
+        var container = document.getElementById('chart')
+        var smallMultiplesContainer = document.getElementById('categorySection')
+        var zindex = 1;
+        var width = 200;
+
+     //Tegn eller Gentegn alle billeder i dict: 
+      for(var brush in this.brushImageDict){
+      var imagesFromBrush = this.brushImageDict[brush]
+      for(var i =0; i < imagesFromBrush.length; i++){
+              currentMonday = imagesFromBrush[i]
+              
+
+              var rows = document.getElementById("rows")
+              rows.style.width = "400px";
+              var totalCounter = 0;
+
               var drawing = document.createElement("IMG")
               drawing.style.zIndex=zindex;
               drawing.style.position = "absolute";
               drawing.style.left="0px";
               drawing.style.top="0px";
-              drawing.className = "bigImages images "+ id.toString() + " " + id.toString()+j.toString()  + " "  + currentMonday.toString()
+              drawing.className = "bigImages images "+ id.toString()  + " "  + currentMonday.toString()
               drawing.src = "data:image/png;base64," + currentMonday;
               container.appendChild(drawing);
  
            }
-        }
-        }
 
+        }
+        }
       else {
           $(".images").remove();
           //$("#chart").removeClass("showingDrawings");
@@ -1150,8 +1174,9 @@ export default {
                     $(".custom-menu").hide(100);
                     $(".images").remove();
                     $("#chart").removeClass("showingDrawings")
+                   
                      // If all images are removed, slider should be removed too
-                    if($(".smallMutiples").length == 0){
+                    if($(".smallImages").length == 0){
                        if($(".rows").hasClass("slick-initialized")){
                           $('.rows').slick("unslick")
                           $("#noDrawings").hide();
@@ -1162,6 +1187,7 @@ export default {
                     }
                   });
             });
+
     
     },
     drawCalender(){
@@ -1257,7 +1283,7 @@ export default {
      categoryGridCells() {
       var cellPositions = [];
       var width = 1030;
-      var height = 2;
+      var height = 4;
       var numberOfWeeks = this.numberOfWeeks;
       var numberOfCategories = this.items.length;
       var categoryDict = this.categoryOverviewDict;
@@ -1267,7 +1293,7 @@ export default {
         for (var x = 0; x < numberOfWeeks; x++) {
             
             cellPositions.push([
-            x * (width/ numberOfWeeks),
+            x * ((width/ numberOfWeeks)),
             y * (height),categoryDict[x][y],
           ]);
         }
@@ -1381,12 +1407,12 @@ export default {
         var numberOfWeeks = this.numberOfWeeks;
         var cellWidth = 1030/numberOfWeeks;
         var numberOfCategories = this.items.length;
-        var cellHeight = 60/numberOfCategories;      
+        var cellHeight = 40/numberOfCategories;      
 
       var gridXTranslation = this.gridXTranslation;
       var gridYTranslation = this.gridYTranslation;
 
-      var categoryHeight = 2 * numberOfCategories; 
+      var categoryHeight = 4 * numberOfCategories; 
 
       var categoryOverview = d3
         .select("#categoryOverview")

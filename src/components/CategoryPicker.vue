@@ -30,8 +30,11 @@
   </ul>
 </div>
 <div>
+    <div class="swatch chosenColor" :style="{ background: currentColor }" v-on:click="colorPicker" />
+  <img src="../../public/data/drop-down-arrow.png" id="dropdownicon" width="6" height="6">
   <input v-model="categoryName" id="addCategory" placeholder=" Tilføj Kategori"/> 
-  <div class="swatch chosenColor" :style="{ background: currentColor }" v-on:click="colorPicker" /> <button type="button" class="btn btn-default drawingsbuttons" id="SaveBTN" @click="saveCat">Tilføj</button>
+
+   <button type="button" class="btn btn-default drawingsbuttons" id="SaveBTN" @click="saveCat">Tilføj</button>
 
 </div>
 <ul class='custom-menu2'>
