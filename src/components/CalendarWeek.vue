@@ -106,7 +106,7 @@ export default {
       gridColor: "lightgrey",
       currentlyShownImages: [],
       brushImageDict: {},
-      currentlyShownMondays: [],
+      currentlyShownMondays: {},
       ImagePlaceInDict: {},
       monthNames: [
         "January",
@@ -568,6 +568,7 @@ export default {
                       _this.brushes.splice(index, 1);
                     }
                     delete _this.brushImageDict[lastClickedId];
+                    delete _this.currentlyShownMondays[lastClickedId]
                     $("#"+lastClickedId).remove();  
                     _this.showDrawings(null, null, lastClickedId, false);
                     _this.showSmallMutiples(null, null, lastClickedId);
@@ -643,6 +644,7 @@ export default {
             
             if(deleted || monday > sunday){
                 delete _this.brushImageDict[lastBrush]
+                delete _this.currentlyShownMondays[lastBrush]
                 $(this).remove();
                  _this.showDrawings(null, null, this.id, false);
                  
@@ -891,7 +893,7 @@ export default {
       var imagesFromBrush = this.brushImageDict[brush]
         for(var i =0; i < imagesFromBrush.length; i++){
               var currentMonday = imagesFromBrush[i]
-              var monday = this.currentlyShownMondays[i]
+              var monday = this.currentlyShownMondays[brush][i]
 
               if(column){
                     rows.appendChild(column)
@@ -1013,11 +1015,14 @@ export default {
 
                       
                       _this.brushImageDict[brushId].splice(index, 1);
+                      _this.currentlyShownMondays[brushId].splice(index,1)
                       
                       if(_this.brushImageDict[brushId].length == 0){
                         delete _this.brushImageDict[brushId]
+                        delete _this.currentlyShownMondays[brushId]
                       }
 
+                        _this.showDrawings("", "", brushId, false);
                         _this.showSmallMutiples("", "", brushId);
                         
                         
@@ -1083,10 +1088,10 @@ export default {
               chosenDays.push(monday)
           }
         }
-
         this.ImagePlaceInDict = {}
         this.brushImageDict[id] = []
-        this.currentlyShownMondays = []
+        this.currentlyShownMondays[id] = []
+        
         for(var i = 0; i < chosenDays.length; i++) {
             var monday = chosenDays[i]
             var chosenMonday = this.imgDict[monday]
@@ -1094,11 +1099,12 @@ export default {
            for(var j =0; j< chosenMonday.length; j++ ){
               var currentMonday = chosenMonday[j]
               this.ImagePlaceInDict[currentMonday] = [monday,j]
-              this.currentlyShownMondays.push(monday)
-              //this.currentlyShownImages.push(currentMonday)
+              
+              
 
               //Keep track of which brush holds which images
               this.brushImageDict[id].push(currentMonday)
+              this.currentlyShownMondays[id].push(monday)
               
 
            }
@@ -1365,6 +1371,7 @@ export default {
             var currentSunday = new Date(
               new Date(currentMonday).setDate(currentMonday.getDate() + 6)
             );
+            currentSunday.setHours(23,59,59,59)
             stopFlag = true;
           }
 
