@@ -13,6 +13,7 @@
           Tilføj en tegning ved at: <br> 1. Trykke på en kategori <br> 2. Tegn på kalenderen ved at holde shift + venstre musetast nede.
           </p>
           <CategoryPicker :chosenRect="chosenRect" :chosenDateTime="chosenDateTime" v-model="parentValue" class="categoryPicker" :color.sync="color" :items.sync="items" :repModalOpen.sync="repModalOpen" :catDict.sync="catDict"></CategoryPicker>
+          <div class="rows" id="rows"><p id="noDrawings"> Ingen tegninger i den valgte periode </p></div>
         </div>
 <div id="categoryOverview" class="left"> </div>
       <div class="buttonGroup left">
@@ -46,7 +47,7 @@
 
       <!-- Nederste: SKEMA OG SMALL MULTIPLES -->
 
-      <div class="rows" id="rows"><p id="noDrawings"> Ingen tegninger i den valgte periode </p></div>
+      
       <div id="chart"></div>
     
 
@@ -1137,7 +1138,6 @@ export default {
               drawing.className = "bigImages images "+ id.toString()  + " "  + currentMonday.toString()
               drawing.src = "data:image/png;base64," + currentMonday;
               container.appendChild(drawing);
- 
            }
 
         }
@@ -1145,6 +1145,12 @@ export default {
       else {
           $(".images").remove();
           //$("#chart").removeClass("showingDrawings");
+      }
+
+      if($(".bigImages").length > 0){
+        $("#chart").addClass("showingDrawings")
+      } else {
+        $("#chart").removeClass("showingDrawings")
       }
 
       var _this = this;
