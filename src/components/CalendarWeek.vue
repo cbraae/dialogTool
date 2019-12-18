@@ -70,15 +70,11 @@
 <script>
 import * as d3 from 'd3'
 import moment from "moment";
-
 import Vue from "vue";
 import App from "../App.vue";
 import "bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import CategoryPicker from './CategoryPicker.vue'
-
-
-
 
 
 
@@ -459,15 +455,12 @@ export default {
          
 
         if(firstMonday.getDate()+6 == lastSunday.getDate()){
-            var xAxis = axisTop().scale(xScale).ticks(7).tickFormat(d3.timeFormat("%a %d %b")).tickSizeOuter(0)
-            var bottomAxis =  axisBottom().scale(xScale).ticks(7).tickFormat(d3.timeFormat("%a %d %b")).tickSizeOuter(0)      
+            var xAxis = d3.axisTop().scale(xScale).ticks(7).tickFormat(d3.timeFormat("%a %d %b")).tickSizeOuter(0)
+            var bottomAxis =  d3.axisBottom().scale(xScale).ticks(7).tickFormat(d3.timeFormat("%a %d %b")).tickSizeOuter(0)      
         } else {
            var xAxis = d3.axisTop().scale(xScale).ticks(d3.timeMonday).tickFormat(d3.timeFormat("%a %d %b")).tickSizeOuter(0)
            var bottomAxis =  d3.axisBottom().scale(xScale).ticks(d3.timeMonday).tickFormat(d3.timeFormat("%a %d %b")).tickSizeOuter(0)
         }
-
-
-
         // var xAxis = d3.axisBottom().scale(xScale).ticks(d3.timeMonday);
         var yAxis = d3.axisLeft().scale(y).tickValues([6,12,18,24]).tickFormat(function(d){return "Kl."+d; }).tickSizeOuter(0)
       
@@ -813,8 +806,9 @@ export default {
               
               if(this.chosenColors[color].toString().includes("#")){
                 this.colorDict[imgData].push(this.chosenColors[color])
+                
               }
-              
+
           }
           
          
@@ -824,8 +818,12 @@ export default {
 
             for(var color in this.chosenColors){
                if(this.chosenColors[color].toString().includes("#")){
-                this.colorDict[imgData] = []
-                this.colorDict[imgData].push(this.chosenColors[color])
+                 if(!this.colorDict[imgData]){
+                   this.colorDict[imgData] = []
+                   this.colorDict[imgData].push(this.chosenColors[color])
+                 } else {
+                   this.colorDict[imgData].push(this.chosenColors[color])
+                 }
               }
           }
          
@@ -1298,6 +1296,7 @@ export default {
       var height = 4;
       var numberOfWeeks = this.numberOfWeeks;
       var numberOfCategories = this.items.length;
+      this.categoryOverviewDict = this.initialiseCategoryDict();
       var categoryDict = this.categoryOverviewDict;
 
       for (var y = 0; y < numberOfCategories; y++) {
@@ -1662,7 +1661,6 @@ export default {
         }
         
       }
-      
 
       //localStorage.setItem("categoryOverviewDict", JSON.stringify(dict));
 
