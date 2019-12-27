@@ -1570,7 +1570,7 @@ export default {
       var myCanvas = document.createElement('canvas');
       myCanvas.id = "drawing-area";
       myCanvas.style.width = this.calendarWidth;
-      myCanvas.style.height = this.calendarHeight;
+      myCanvas.style.height = "460px";
       myCanvas.style.zIndex="1080";
       myCanvas.style.left="0px";
       myCanvas.style.top="0px";
@@ -1891,8 +1891,8 @@ export default {
       const clientX = event.clientX || event.touches[0].clientX;
       const clientY = event.clientY || event.touches[0].clientY;
       const { offsetLeft, offsetTop } = event.target;
-      const canvasX = clientX - offsetLeft -18;
-      const canvasY = clientY-294;
+      const canvasX = clientX - offsetLeft -30;
+      const canvasY = clientY-274;
 
       return { x: canvasX, y: canvasY };
     }
