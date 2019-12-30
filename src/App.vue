@@ -2,20 +2,21 @@
 <template>
   <div id="app">
      <nav class="navbar navbar-dark bg-dark" id="header">
-      <!--<button @click="toggleView" class="btn btn-secondary headerbtn"> Skift visning </button>  -->
+    
       <label class="fileUpload"> Upload fil <FileUpload :loadData.sync="loadData"/> </label>
       </nav>
 
-     <CalendarWeek v-if="showCalendar" :trackingData=loadData />
-     <CalendarMonth v-if="!showCalendar" :trackingData=loadData />
+      <Timeline :trackingData=loadData />
+     <CalendarWeek :trackingData=loadData />
+    
      
   </div>
 </template>
 
 <script>
 import CalendarWeek from './components/CalendarWeek'
-import CalendarMonth from './components/CalendarMonth'
 import FileUpload from './components/FileUpload'
+import Timeline from './components/Timeline'
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import * as d3 from 'd3'
@@ -23,9 +24,9 @@ import * as d3 from 'd3'
 export default {
   name: 'app',
   components: {
-    CalendarMonth, 
     CalendarWeek,
-    FileUpload
+    FileUpload, 
+    Timeline
   }, data(){
     return {
       loadData: {},
@@ -55,14 +56,38 @@ export default {
         cleanedData.removeIf(function(item, idx) {
           return item == ";";
         });
-        this.loadData = cleanedData; 
-        
+
+      if(cleanedData.length > 1) {
+        var trackData = cleanedData.filter(function (el) {
+          return el != "";
+      })
+
+        var _this = this; 
+        var cleanData = trackData.map(function(element) { 
+          
+          var elem = _this.parseDate(element)
+          return elem;
+        });
+
+        this.loadData = cleanData; 
+      }
     },
-    toggleView() { 
-        this.showCalendar = !this.showCalendar;
-    }
+      parseDate(input) {
+      
+      if(input.toString().includes("-")){
+        input+="z"
+        return new Date(input)
+      } else 
+        return new Date(Date.UTC(
+          parseInt(input.toString().slice(0, 4), 10),
+          parseInt(input.toString().slice(4, 6), 10) - 1,
+          parseInt(input.toString().slice(6, 8), 10),
+          parseInt(input.toString().slice(9, 11), 10),
+          parseInt(input.toString().slice(11, 13), 10),
+          parseInt(input.toString().slice(13,15), 10)
+        ));
+  }
   }
 }
 
 </script>
-

@@ -5,7 +5,7 @@
     <!-- TOP ROW: Timeline og knap-dahsboard -->
     <div id="row" class="Upper">
      
-      <div id="selector" class="left">  </div> 
+      <!--div id="selector" class="left">  </div> -->
         
           <div  id="categorySection" class="right">
           <p id="categoryHeader"> KATEGORIER</p>
@@ -60,9 +60,6 @@
         <li data-action="first">Slet</li>
       </ul> 
       
-
-
-
   </div>
 </template>
 
@@ -199,17 +196,8 @@ export default {
     },
     trackingData: {
       handler: function() {
-      if(this.trackingData.length > 1) {
-        var trackData = this.trackingData.filter(function (el) {
-          return el != "";
-      })
 
-        var _this = this; 
-        this.cleanData = trackData.map(function(element) { 
-          
-          var elem = _this.parseDate(element)
-          return elem;
-        });
+        this.cleanData = this.trackingData
         
             
         this.currentMonday = this.findTheMonday(this.cleanData);
@@ -247,10 +235,10 @@ export default {
         }*/
 
           
-          this.createTimeline()
+          //this.createTimeline()
 
 
-        }
+        
       },
       deep: true,
       immediate: true

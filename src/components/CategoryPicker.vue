@@ -3,24 +3,6 @@
 <template>
 <div>
 
-<!-- Modal asking for repetition-->
-  <div class="modal modal-dialog modal-sm float-left" id="myModal" v-if="modalOpen">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <!-- Modal Header -->
-        <div class="modal-header">
-          <b>Gentag?</b>
-          <button type="button" class="close" @click="closeModal" data-dismiss="modal">&times;</button>
-        </div>
-        <!-- Modal footer -->
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" @click="openRepModal">Ja</button>
-          <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="closeModal">Nej</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
 <div id="cat">
 
   <ul :style="gridStyle" class="card-list">
@@ -59,13 +41,11 @@ window.JQuery = require('jquery')*/
 
 import "bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
-import Modal from './Modal'
 
     export default {
       name: "CategoryPicker",
       props: ["items", "chosenRect", "value", "catDict", "chosenDateTime","repModalOpen", "color"],
       components: {
-        Modal
       },data() {
         return {
           colorPickerChosen: false,
