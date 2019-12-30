@@ -187,7 +187,7 @@
   
   
   #chart {
-    position:relative;
+    position:absolute;
     width:1080px;
     height:455px;
     left: 20px;

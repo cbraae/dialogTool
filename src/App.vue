@@ -6,9 +6,22 @@
       <label class="fileUpload"> Upload fil <FileUpload :loadData.sync="loadData"/> </label>
       </nav>
 
-      <Timeline :trackingData=loadData />
-     <CalendarWeek :trackingData=loadData />
-    
+      <Timeline :trackingData=loadData :chosenMonday.sync="chosenMonday" :chosenSunday.sync="chosenSunday"
+      :startDate.sync="startDate" :endDate.sync="endDate" :brushId.sync="brushId" :brushEnd.sync="brushEnd" :data.sync="data"/>
+       <CalendarWeek :trackingData=loadData :chosenMonday=chosenMonday :chosenSunday=chosenSunday />
+       <div id="categorySection" class="right">
+          <p id="categoryHeader"> KATEGORIER</p>
+          <p class="desc">
+          Tilføj en tegning ved at: <br> 1. Trykke på en kategori <br> 2. Tegn på kalenderen ved at holde shift + venstre musetast nede.
+          </p>
+          <CategoryPicker class="categoryPicker" :color.sync="color" :items.sync="items" :catDict.sync="catDict" :drawingSaved.sync="drawingSaved"></CategoryPicker>
+      </div>
+      <DrawingsoverlayComponent :startDate=startDate :endDate=endDate :brushId=brushId :brushEnd=brushEnd imgDict.sync="imgDict" svgDict.sync="svgDict" brushes.sync="brushes" />
+      <CategoryOverview :drawingSaved=drawingSaved :items=items :trackingData=loadData /> 
+      <div class="rows" id="rows"><p id="noDrawings"> Ingen tegninger i den valgte periode </p></div>
+         
+          <createDrawingComponent :trackingData=loadData :color=color  :chosenMonday=chosenMonday :drawingSaved.sync="drawingSaved" imgDict.sync="imgDict" colorDict.sync="colorDict" svgDict.sync="svgDict"/>
+        
      
   </div>
 </template>
@@ -17,6 +30,10 @@
 import CalendarWeek from './components/CalendarWeek'
 import FileUpload from './components/FileUpload'
 import Timeline from './components/Timeline'
+import CategoryPicker from './components/CategoryPicker.vue'
+import createDrawingComponent from './components/CreateDrawingComponent.vue'
+import DrawingsoverlayComponent from './components/DrawingsOverlayComponent.vue'
+import CategoryOverview from './components/CategoryOverview.vue'
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import * as d3 from 'd3'
@@ -26,13 +43,35 @@ export default {
   components: {
     CalendarWeek,
     FileUpload, 
-    Timeline
+    Timeline,
+    CategoryPicker,
+    createDrawingComponent,
+    DrawingsoverlayComponent,
+    CategoryOverview
+   
   }, data(){
     return {
       loadData: {},
+      drawingSaved: "",
       showCalendar: true,
+      chosenMonday: "",
+      chosenSunday: "",
+      color: "",
+      startDate: "",
+      endDate:"",
+      brushId:"",
+      brushEnd:false,
+      catDict: {},
+      items: [],
+      imgDict: {},
+      colorDict: {},
+      svgDict: {},
+      data: {}
     }; 
   }, mounted() {
+
+    
+
     this.fetchData(); 
   },
   watch: {

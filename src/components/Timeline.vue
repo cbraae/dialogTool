@@ -7,7 +7,7 @@
 import * as d3 from 'd3'
 
 export default {
-  name: "CalendarWeek",
+  name: "Timeline",
   props: ["trackingData"],
   data() {
     return {
@@ -25,15 +25,24 @@ export default {
         oldSelection: "",
         gBrushes: "",
         lastClickedId: "",
-        clicked: false
+        clicked: false,
+        chosenMonday: "",
+        chosenSunday: "", 
+        startDate: "",
+        endDate: "",
+        brushId:"",
+        brushEnd: false,
+        extendedDays: ""
     }
   },
   watch: {
       trackingData: {
       handler: function() {
         this.data = this.getTally()
-        this.firstMonday = this.getMonday(d3.min(this.data, function(d){return d.date; }))
-        this.lastSunday =  this.getSunday(d3.max(this.data, function(d){return d.date; }))
+        this.extendedDays = this.getTotalForEachDay();
+        this.firstMonday = this.getMonday(d3.min(this.extendedDays, function(d){return d.date; }))
+        this.lastSunday =  this.getSunday(d3.max(this.extendedDays, function(d){return d.date; }))
+        
         this.xScale = this.getxScale();
         this.yScale = this.getyScale();
         this.drawTimeline();
@@ -60,10 +69,13 @@ export default {
     getTally() {
       var tally = [];
       var firstTime = true
+      //var cleanData = this.getTotalForEachDay()
+      //var lastDate = new Date( new Date(cleanData[0]))
+      var cleanData = this.trackingData
       var lastDate = new Date( new Date(this.trackingData[0]))
       var counter = 0
-      var cleanData = this.trackingData;
-
+      
+    
             cleanData.forEach(function(line) {
                     
                     var date = new Date( new Date(line))
@@ -79,6 +91,7 @@ export default {
                     
             });
             tally.push({date:lastDate,count:counter})
+      
       return tally;
     },
     drawSVGs(){
@@ -309,14 +322,16 @@ export default {
           });
          
     },
-    brushed() {
+    brushed(target) {
             var _this = this;
 
             if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
             var k = d3.event.selection;
-            var startDate = _this.xScale.invert(k[0])
-            var endDate = _this.xScale.invert(k[1])
-            //_this.showDrawings(startDate, endDate, this.id, false);
+
+            this.$emit('update:startDate', _this.xScale.invert(k[0]));
+            this.$emit('update:endDate', _this.xScale.invert(k[1]));
+            this.$emit('update:brushId', target.id);
+            this.$emit('update:brushEnd', false);
     }, 
     brushend(target) {
             var deleted = false;
@@ -348,16 +363,21 @@ export default {
             if(deleted || monday > sunday){
                 //delete _this.brushImageDict[lastBrush]
                 //delete _this.currentlyShownMondays[lastBrush]
-                $(this).remove();
-                 //_this.showDrawings(null, null, this.id, false);
-                 
-                //_this.showSmallMutiples(null, null, this.id);
+
+                this.$emit('update:startDate', null);
+                this.$emit('update:endDate', null);
+                this.$emit('update:brushId', target.id);
+                this.$emit('update:brushEnd', false);
+
 
             } else {
                 var brush = _this.brushes[_this.brushes.length - 1].brush;
-                 d3.select("#brush-"+target.id).transition().call(brush.move, [mondayCords,sundayCords])
-                //_this.showDrawings(monday, sunday, this.id, true);
-                //_this.showSmallMutiples(monday, sunday, this.id);
+                d3.select("#brush-"+target.id).transition().call(brush.move, [mondayCords,sundayCords])
+                
+                this.$emit('update:startDate', monday);
+                this.$emit('update:endDate', sunday);
+                this.$emit('update:brushId', target.id);
+                this.$emit('update:brushEnd', true);
             }
             
             // Always draw brushes
@@ -408,6 +428,59 @@ export default {
                 x1 = brush_coords[1]
             return x0 <= cx && x1 >= cx   
         }, 
+     getTotalForEachDay(){
+      Date.prototype.addDays = function(days) {
+          var date = new Date(this.valueOf());
+          date.setDate(date.getDate() + days);
+          return date;
+      }
+      function getDates(startDate, stopDate) {
+          var sunday = new Date(stopDate.setDate(stopDate.getDate() + (7 - stopDate.getDay()) % 7))
+          var dateArray = new Array();
+          var currentDate = startDate;
+          currentDate.setHours(0,0,0,0)
+          while (currentDate <= sunday) {
+              for(var i = 0; i < 24; i++){
+              var currentDay = new Date (currentDate)
+              currentDay.setHours(i)
+                dateArray.push({date: currentDay, count: 0});
+              }
+              
+              currentDate = currentDate.addDays(1);
+              //currentDate.setHours(0,0,0,0)
+          }
+          return dateArray;
+      }
+      var datesInPeriod= getDates(new Date((this.trackingData[0])), new Date( this.trackingData[this.trackingData.length-1]))
+     
+      var tally = [];
+      var firstTime = true
+      var lastDate = new Date( new Date(this.trackingData[0]))
+      var counter = 0
+      var cleanData = this.trackingData;
+      var counter = 0
+    cleanData.forEach(function(line) {
+              var date = new Date( new Date(line))
+              if(lastDate.getHours()===date.getHours() ){
+                counter++;
+              } else { 
+                tally.push({date:date,count:counter})
+                counter = 0;
+              }
+              lastDate = date;
+      });
+      var lastDate = new Date( new Date(this.trackingData[0]))
+    
+        for(var i=0; i < tally.length; i++){
+             for(var j = 0; j < datesInPeriod.length; j++ ) {
+                  if(tally[i].date.getDate() == datesInPeriod[j].date.getDate() && tally[i].date.getHours() == datesInPeriod[j].date.getHours() && tally[i].date.getMonth() == datesInPeriod[j].date.getMonth()){
+                    datesInPeriod[j].count = tally[i].count
+                  }
+             }
+        }
+      
+      return datesInPeriod;
+    },   
     dateBrush() {
             //var justInitialized = true;
             
@@ -438,7 +511,10 @@ export default {
             //_this.displayChosenWeek(monday,sunday);
             _this.oldSelection = k[0]
             var weekBrush = _this.weekBrush;
-            
+            _this.chosenMonday = monday;
+            _this.chosenSunday = sunday; 
+            this.$emit('update:chosenMonday', _this.chosenMonday);
+            this.$emit('update:chosenSunday', _this.chosenSunday);
             d3.select(".weekbrush").transition().call(weekBrush.move, [mondayCords,sundayCords])
             
     },
