@@ -6,7 +6,7 @@
  
  
   #noDrawings {
-    margin-right: 130px;
+    margin-right: -200px;
     display: none;
     margin-top:10px;
   }
@@ -191,7 +191,7 @@
     width:1080px;
     height:455px;
     left: 20px;
-    margin-top:40px;
+    bottom: 30px;
   }
   #calendar {
     z-index:1;

@@ -29,6 +29,7 @@
         </li>
   </ul>
 </div>
+<div class="rows" id="rows"><p id="noDrawings"> Ingen tegninger i den valgte periode </p></div>
 </div>
 </template>
 

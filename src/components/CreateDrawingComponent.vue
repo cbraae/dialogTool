@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="buttonGoupContainer"> 
         <div class="buttonGroup left">
           <button
               id="save"

@@ -21,6 +21,14 @@ export default {
             immediate: true
 
         }
+    }, mounted(){
+
+      this.brushImageDict = {}
+      this.currentlyShownMondays = {}
+      localStorage.setItem("brushImageDict", JSON.stringify(this.brushImageDict));
+      localStorage.setItem("currentlyShownMondays", JSON.stringify(this.currentlyShownMondays));
+
+
     }, data() {
       return {
         ImagePlaceInDict: {},
@@ -28,12 +36,12 @@ export default {
         currentlyShownMondays: {},
         imgDict: {},
         svgDict: {},
-        brushes: []
+        brushes: [], 
+        drawingSaved: ""
     }
     },
     methods: {
     showDrawings(startDate, endDate, id){
-
          if (localStorage.getItem('imgDict')){
         this.imgDict = JSON.parse(localStorage.getItem('imgDict'));
           };
@@ -45,7 +53,14 @@ export default {
           if (localStorage.getItem('svgDict')){
             this.svgDict = JSON.parse(localStorage.getItem('svgDict'));
           };
+          if (localStorage.getItem('brushImageDict')){
+        this.brushImageDict = JSON.parse(localStorage.getItem('brushImageDict'));
+          };
 
+           if (localStorage.getItem('currentlyShownMondays')){
+        this.currentlyShownMondays = JSON.parse(localStorage.getItem('currentlyShownMondays'));
+          };
+        
 
 
         //Altid slet alle billeder først
@@ -60,6 +75,7 @@ export default {
               chosenDays.push(monday)
           }
         }
+        
         this.ImagePlaceInDict = {}
         this.brushImageDict[id] = []
         this.currentlyShownMondays[id] = []
@@ -85,7 +101,6 @@ export default {
         var smallMultiplesContainer = document.getElementById('categorySection')
         var zindex = 1;
         var width = 200;
-
      //Tegn eller Gentegn alle billeder i dict: 
       for(var brush in this.brushImageDict){
       var imagesFromBrush = this.brushImageDict[brush]
@@ -166,10 +181,11 @@ export default {
                     }
                   });
             });
-    
+
+    localStorage.setItem("brushImageDict", JSON.stringify(_this.brushImageDict));
+    localStorage.setItem("currentlyShownMondays", JSON.stringify(_this.currentlyShownMondays));
     },
     showSmallMultiples(startDate, endDate, id){
-      
          if (localStorage.getItem('imgDict')){
         this.imgDict = JSON.parse(localStorage.getItem('imgDict'));
           };
@@ -182,12 +198,22 @@ export default {
             this.svgDict = JSON.parse(localStorage.getItem('svgDict'));
           };
 
+            if (localStorage.getItem('brushImageDict')){
+        this.brushImageDict = JSON.parse(localStorage.getItem('brushImageDict'));
+          };
+
+           if (localStorage.getItem('currentlyShownMondays')){
+        this.currentlyShownMondays = JSON.parse(localStorage.getItem('currentlyShownMondays'));
+          };
+        
+
       if($(".rows").hasClass("slick-initialized")){
          $('.rows').slick("unslick")
        }
        $(".imgs").remove();
        $("#noDrawings").hide();
        $(".smallImages").off();
+       console.log(this.brushImageDict)
 
         if(Object.entries(this.imgDict).length > 0){
         var imageList = []
@@ -206,9 +232,10 @@ export default {
       for(var brush in this.brushImageDict){
       var imagesFromBrush = this.brushImageDict[brush]
         for(var i =0; i < imagesFromBrush.length; i++){
+
               var currentMonday = imagesFromBrush[i]
               var monday = this.currentlyShownMondays[brush][i]
-
+              
               if(column){
                     rows.appendChild(column)
               }
@@ -312,13 +339,13 @@ export default {
                     if(!userHasAnswered){
                       userHasAnswered = true;
                       var result = confirm("Tegningen bliver slettet permanent. Fortsæt?");
+                      
                     }
                     
                     
                     $(".custom-menu-delete").hide(100);
 
                     if (result) {
-                       
                         removeImage(_this.ImagePlaceInDict[clickedItem][0],_this.ImagePlaceInDict[clickedItem][1])
 
                         for(var i=0; i < _this.brushImageDict[brushId].length; i++ ){
@@ -335,10 +362,11 @@ export default {
                         delete _this.brushImageDict[brushId]
                         delete _this.currentlyShownMondays[brushId]
                       }
+                      localStorage.setItem("brushImageDict", JSON.stringify(_this.brushImageDict));
+                      localStorage.setItem("currentlyShownMondays", JSON.stringify(_this.currentlyShownMondays));
 
                         _this.showDrawings("", "", brushId, false);
-                        _this.showSmallMutiples("", "", brushId);
-                        
+                        _this.showSmallMultiples("", "", brushId);
                         
                        
                         //$('.'+brushId.toString()).remove();
@@ -371,15 +399,18 @@ export default {
             if(_this.imgDict[monday].length == 0){
                 _this.$delete(_this.imgDict, monday)
              } 
-             
 
-             localStorage.setItem("imgDict", JSON.stringify(_this.imgDict));
-             _this.initialiseCategoryDict();
-             _this.drawCategoryGrid();
+            localStorage.setItem("brushImageDict", JSON.stringify(_this.brushImageDict));
+            localStorage.setItem("currentlyShownMondays", JSON.stringify(_this.currentlyShownMondays));
+            localStorage.setItem("imgDict", JSON.stringify(_this.imgDict));
+            this.$emit("drawingSaved", true)
+
+            // _this.initialiseCategoryDict();
+            // _this.drawCategoryGrid();
           }
       
 
-        this.displayingDrawings = !this.displayingDrawings;
+        
     }
 }   
 }

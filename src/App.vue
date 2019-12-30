@@ -16,11 +16,11 @@
           </p>
           <CategoryPicker class="categoryPicker" :color.sync="color" :items.sync="items" :catDict.sync="catDict" :drawingSaved.sync="drawingSaved"></CategoryPicker>
       </div>
-      <DrawingsoverlayComponent :startDate=startDate :endDate=endDate :brushId=brushId :brushEnd=brushEnd imgDict.sync="imgDict" svgDict.sync="svgDict" brushes.sync="brushes" />
+      <DrawingsoverlayComponent :startDate=startDate :endDate=endDate :brushId=brushId :brushEnd=brushEnd imgDict.sync="imgDict" svgDict.sync="svgDict" brushes.sync="brushes"  :drawingSaved.sync="drawingSaved"/>
       <CategoryOverview :drawingSaved=drawingSaved :items=items :trackingData=loadData /> 
-      <div class="rows" id="rows"><p id="noDrawings"> Ingen tegninger i den valgte periode </p></div>
+      
          
-          <createDrawingComponent :trackingData=loadData :color=color  :chosenMonday=chosenMonday :drawingSaved.sync="drawingSaved" imgDict.sync="imgDict" colorDict.sync="colorDict" svgDict.sync="svgDict"/>
+      <createDrawingComponent :trackingData=loadData :color=color  :chosenMonday=chosenMonday :drawingSaved.sync="drawingSaved" imgDict.sync="imgDict" colorDict.sync="colorDict" svgDict.sync="svgDict"/>
         
      
   </div>

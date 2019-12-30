@@ -118,8 +118,14 @@ export default {
   watch: {
     chosenMonday: {
         handler: function(){
-          console.log(this.chosenMonday)
-        this.displayChosenWeek(this.chosenMonday,this.chosenSunday);
+
+         if(this.chosenMonday){
+            this.cleanData = this.trackingData
+            this.dict = this.getDayTimeDict();
+            this.curr = this.getCurrentWeek(this.cleanData, this.chosenMonday);
+            this.displayChosenWeek(this.chosenMonday,this.chosenSunday);
+         }
+        
         
       },
       deep: true,
@@ -134,36 +140,12 @@ export default {
       },
       deep: true,
       immediate: true
-    },
-      items:{
-      handler: function(){
-        if(Object.entries(this.items).length > 3) {
-            localStorage.setItem('categories', JSON.stringify(this.items));
-        }
-        
-      },
-      deep: true,
-      immediate: true
-    },
-
-    repModalOpen: {
-       handler: function(){
-         if(!this.repModalOpen) {
-           /*this.deleteGraph();
-           this.drawCalender();*/
-         }
-       } 
+    
     },
     trackingData: {
       handler: function() {
 
-        this.cleanData = this.trackingData
-        
-            
-       
-        this.dict = this.getDayTimeDict();
-        
-        this.curr = this.getCurrentWeek(this.cleanData, this.chosenMonday);
+      
             
         //this.observationsPerDay = this.getTotalForEachDay();
         
@@ -176,19 +158,6 @@ export default {
         this.items = JSON.parse(localStorage.getItem('categories'));
         };
 
-        
-
-        
-        
-        /*if(localStorage.getItem("categoryOverviewDict")){
-          this.categoryOverviewDict = JSON.parse(localStorage.getItem('categoryOverviewDict'));
-        } else {
-          
-        }*/
-
-          
-
-        
       },
       deep: true,
       immediate: true

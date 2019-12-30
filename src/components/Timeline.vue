@@ -32,7 +32,10 @@ export default {
         endDate: "",
         brushId:"",
         brushEnd: false,
-        extendedDays: ""
+        extendedDays: "",
+        brushImageDict: {},
+        currentlyShownMondays: {}
+
     }
   },
   watch: {
@@ -41,7 +44,8 @@ export default {
         this.data = this.getTally()
         this.extendedDays = this.getTotalForEachDay();
         this.firstMonday = this.getMonday(d3.min(this.extendedDays, function(d){return d.date; }))
-        this.lastSunday =  this.getSunday(d3.max(this.extendedDays, function(d){return d.date; }))
+        this.lastSunday =  this.getSunday(d3.max(this.extendedDays, function(d){return d.date; }))        
+
         
         this.xScale = this.getxScale();
         this.yScale = this.getyScale();
@@ -262,6 +266,12 @@ export default {
     }, 
     newBrush() {
         var _this = this;
+        if (localStorage.getItem('brushImageDict')){
+        this.brushImageDict = JSON.parse(localStorage.getItem('brushImageDict'));
+          };
+        if (localStorage.getItem('currentlyShownMondays')){
+        this.currentlyShownMondays = JSON.parse(localStorage.getItem('currentlyShownMondays'));
+          };
         
           var brush = d3.brushX()
             .extent([[50, 66], [1080, 170]])
@@ -304,19 +314,25 @@ export default {
                     if (index > -1) {
                       _this.brushes.splice(index, 1);
                     }
-                    //delete _this.brushImageDict[_this.lastClickedId];
-                    //delete _this.currentlyShownMondays[_this.lastClickedId]
+
+                    delete _this.brushImageDict[_this.lastClickedId];
+                    delete _this.currentlyShownMondays[_this.lastClickedId]
                     $("#"+_this.lastClickedId).remove();  
-                    //_this.showDrawings(null, null, _this.lastClickedId, false);
-                    //_this.showSmallMutiples(null, null, _this.lastClickedId);
+
+                    _this.$emit('update:startDate', null);
+                    _this.$emit('update:endDate', null);
+                    _this.$emit('update:brushId', _this.lastClickedId);
+                    _this.$emit('update:brushEnd', true);
 
                     _this.clicked = false;
+                    localStorage.setItem("brushImageDict", JSON.stringify(_this.brushImageDict));
+                    localStorage.setItem("currentlyShownMondays", JSON.stringify(_this.currentlyShownMondays));
                   }
                    
 
                   break;
             }
-          
+            
             // Hide it AFTER the action was triggered
             $(".custom-menu").hide(100);
           });
@@ -330,7 +346,7 @@ export default {
 
             this.$emit('update:startDate', _this.xScale.invert(k[0]));
             this.$emit('update:endDate', _this.xScale.invert(k[1]));
-            this.$emit('update:brushId', target.id);
+            this.$emit('update:brushId', "brush-"+target.id);
             this.$emit('update:brushEnd', false);
     }, 
     brushend(target) {
@@ -366,7 +382,7 @@ export default {
 
                 this.$emit('update:startDate', null);
                 this.$emit('update:endDate', null);
-                this.$emit('update:brushId', target.id);
+                this.$emit('update:brushId', "brush-"+target.id);
                 this.$emit('update:brushEnd', false);
 
 
@@ -376,7 +392,7 @@ export default {
                 
                 this.$emit('update:startDate', monday);
                 this.$emit('update:endDate', sunday);
-                this.$emit('update:brushId', target.id);
+                this.$emit('update:brushId', "brush-"+target.id);
                 this.$emit('update:brushEnd', true);
             }
             
