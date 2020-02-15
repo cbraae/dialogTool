@@ -3,7 +3,7 @@
   <div id="app">
      <nav class="navbar navbar-dark bg-dark" id="header">
     
-      <label class="fileUpload"> Upload fil <FileUpload :loadData.sync="loadData"/> </label>
+      <label class="fileUpload"> Upload fil <FileUpload :newFileData.sync="newFileData"/> </label>
       </nav>
 
       <Timeline :trackingData=loadData :chosenMonday.sync="chosenMonday" :chosenSunday.sync="chosenSunday"
@@ -66,7 +66,8 @@ export default {
       imgDict: {},
       colorDict: {},
       svgDict: {},
-      data: {}
+      data: {},
+      newFileData: {}
     }; 
   }, mounted() {
 
@@ -75,10 +76,25 @@ export default {
     this.fetchData(); 
   },
   watch: {
-    loadData: {
+    newFileData: {
           handler: function() {
+              
+              var _this = this; 
+              
+                if(_this.newFileData.length > 1) {
+                  var trackData = _this.newFileData.filter(function (el) {
+                    return el != "";
+                })
+              }
 
-          }
+              var cleanData = trackData.map(function(element) { 
+                
+                var elem = _this.parseDate(element)
+                return elem;
+              });
+
+              this.loadData = cleanData; 
+    }
     }
   },
   methods: {

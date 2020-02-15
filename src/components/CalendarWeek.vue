@@ -14,10 +14,8 @@
 
       <!-- Nederste: SKEMA OG SMALL MULTIPLES -->
 
-      
       <div id="chart"></div>
     
-
       <!-- menu til at fjerne brush-->
      <ul class='custom-menu'>
         <li data-action="first">Fjern Visning</li>
@@ -384,6 +382,7 @@ export default {
         .attr("cy", 8)
         .attr("r", function(d, i) {
           return (Math.sqrt(d *4/Math.PI)) * 2;
+          //return (Math.PI * (d*2))/3
         })
         .attr("transform", function(d, i) {
           var currentDataIndex = i;

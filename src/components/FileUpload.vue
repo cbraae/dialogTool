@@ -14,7 +14,7 @@ export default {
 name: "FileUpload",
   data() {
     return {
-      loadData: ''
+      newFileData: ''
     }
     
   },
@@ -39,9 +39,12 @@ name: "FileUpload",
           cleanedData.removeIf(function(item, idx) {
             return item == ";";
           });
+
           
-          _this.loadData = cleanedData;
-          _this.$emit('update:loadData', _this.loadData)
+      
+          
+          _this.newFileData = cleanedData;
+          _this.$emit('update:newFileData', _this.newFileData)
       }
        
         

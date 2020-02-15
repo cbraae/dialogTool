@@ -213,7 +213,6 @@ export default {
        $(".imgs").remove();
        $("#noDrawings").hide();
        $(".smallImages").off();
-       console.log(this.brushImageDict)
 
         if(Object.entries(this.imgDict).length > 0){
         var imageList = []
@@ -403,7 +402,7 @@ export default {
             localStorage.setItem("brushImageDict", JSON.stringify(_this.brushImageDict));
             localStorage.setItem("currentlyShownMondays", JSON.stringify(_this.currentlyShownMondays));
             localStorage.setItem("imgDict", JSON.stringify(_this.imgDict));
-            this.$emit("drawingSaved", true)
+            _this.$emit("update:drawingSaved", true)
 
             // _this.initialiseCategoryDict();
             // _this.drawCategoryGrid();

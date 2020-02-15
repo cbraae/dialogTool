@@ -1,29 +1,22 @@
-# test
+DIALOGTOOL
 
-## Project setup
-```
-npm install
-```
+Tool used for visualising and annotating self-tracking data. 
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+______________
+Dependencies:
+npm
+Bootstrap
+Vue.js
+D3.js
+Slick
 
-### Compiles and minifies for production
-```
-npm run build
-```
+______________
+Requires NPM to be installed 
 
-### Run your tests
-```
-npm run test
-```
+To run application: 
+1. Open CMD
+2. Navigate to "../dialogTool/src"
+3. Write "npm run serve" in cmd 
 
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+_______________
+ 

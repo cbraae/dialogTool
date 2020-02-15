@@ -287,13 +287,15 @@
   
   .weekbrush .selection{
     fill: white !important;
-    stroke:lightgray;
-    /*stroke: #DE8D68 !important;*/
+    /*stroke:black;*/
+    stroke: lightgrey !important;
   }
   
   .brush .selection {
+    /*fill: lightgrey;
+    stroke:  #DE8D68 !important; */
+    stroke: grey !important;
     fill: none;
-    stroke: #80878F !important; 
   }
   
   #chart {
@@ -301,8 +303,10 @@
   }
 
   .showingDrawings {
-    border: 1px solid #80878F !important;
-    /*background-color: RGBA(206,174,68,0.08);*/
+    border: 1px solid black !important;
+    /*border: 1px solid #DE8D68 !important;
+    /*background-color: #DE8D68;*/
+   /* background-color:rgb(211,211,211, 0.2)*/
    
   }
   
