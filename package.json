@@ -10,7 +10,7 @@
   "dependencies": {
     "bootstrap": "^4.3.1",
     "core-js": "^2.6.5",
-    "d3": "^5.12.0",
+    "d3": "^7.6.1",
     "d3-selection": "^1.4.0",
     "jquery": "^3.4.1",
     "luxon": "^1.19.3",
